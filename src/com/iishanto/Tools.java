@@ -41,17 +41,16 @@ public class Tools {
     public void callEvent(String type){
         if(type.equals("new_text")){
             String word=(String) list.get(list.size() - 1);
-            word=word.trim();
-            String upword=word.toUpperCase(Locale.ROOT);
+            String upword=clean(word.toUpperCase(Locale.ROOT));
             if(hashMap.containsKey(upword)){
                 System.out.println(word+":"+hashMap.get(upword));
                 latest_translation=word+": "+hashMap.get(upword);
-                for(Object evt:events){
-                    ((Event)evt).event();
-                }
             }else{
                 System.err.println(word+" not found in the database");
-                latest_translation=word+" কে ডেটাবেসে খুঁজে পাই নি";
+                latest_translation=word+": ডেটাবেসে নেই!";
+            }
+            for(Object evt:events){
+                ((Event)evt).event();
             }
         }
     }
@@ -76,6 +75,38 @@ public class Tools {
 
     public void addEvent(Event evt){
         events.add(evt);
+    }
+
+    private String clean(String word){
+        int i=0;
+        String s="";
+        while(i<word.length()){
+            if(!(word.charAt(i)>='A'&&word.charAt(i)<='Z')) {
+                i++;
+            }else{
+                break;
+            }
+        }
+        while (i<word.length()){
+            s+=word.charAt(i);
+            i++;
+        }
+        word=s;
+        s="";
+        i=word.length()-1;
+        while(i>=0){
+            if(!(word.charAt(i)>='A'&&word.charAt(i)<='Z')){
+                i--;
+            }else{
+                break;
+            }
+        }
+        int j=0;
+        while(j<=i){
+            s+=word.charAt(j);
+            j++;
+        }
+        return s;
     }
 
     public static Tools getConfig(){
