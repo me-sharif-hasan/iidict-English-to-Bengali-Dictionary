@@ -39,6 +39,7 @@ public class Window {
 
 
         JTextArea jTextArea=new JTextArea();
+        jTextArea.setText("Dictionary loading.\n");
         JScrollPane jScrollPane=new JScrollPane(jTextArea);
         jScrollPane.setBounds(0,30,300,300);
         Tools.getConfig().addEvent(new Event() {
@@ -50,11 +51,13 @@ public class Window {
                 }
                 jTextArea.append(Tools.getConfig().getLatestTranslation());
                 jScrollPane.validate();
+                jFrame.validate();
                 prev=Tools.getConfig().getLatestTranslation();
                 jTextArea.setCaretPosition(jTextArea.getText().length() - 1);
                 search.setText(prev.split(":")[0]);
             }
         });
+        jTextArea.append("Dictionary has loaded successfully.\n");
 
         jFrame.addComponentListener(new ComponentListener() {
             @Override
