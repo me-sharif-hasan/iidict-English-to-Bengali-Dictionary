@@ -38,16 +38,26 @@ public class Tools {
         return inputStream;
     }
 
+    String meaning(String upword){
+        upword=upword.toUpperCase(Locale.ROOT);
+        if(hashMap.containsKey(upword)){
+            return (String) hashMap.get(upword);
+        }else{
+            return "ডেটাবেসে নেই!";
+        }
+    }
+
     public void callEvent(String type){
         if(type.equals("new_text")){
+            latest_translation="";
             String word=(String) list.get(list.size() - 1);
-            String upword=clean(word.toUpperCase(Locale.ROOT));
-            if(hashMap.containsKey(upword)){
-                System.out.println(word+":"+hashMap.get(upword));
-                latest_translation=word+": "+hashMap.get(upword);
-            }else{
-                System.err.println(word+" not found in the database");
-                latest_translation=word+": ডেটাবেসে নেই!";
+            word=word.trim();
+            String []words=word.split(" ");
+            System.out.println(word+":"+words.length);
+            for(String ws:words){
+                String s=clean(ws);
+                System.out.println(s);
+                latest_translation+=s+": "+meaning(s)+"\n";
             }
             for(Object evt:events){
                 ((Event)evt).event();
@@ -78,34 +88,28 @@ public class Tools {
     }
 
     private String clean(String word){
-        int i=0;
         String s="";
-        while(i<word.length()){
-            if(!(word.charAt(i)>='A'&&word.charAt(i)<='Z')) {
+        String u_word=word.toUpperCase(Locale.ROOT);
+
+        int i=0,j=u_word.length()-1;
+        int dist=j-i;
+        while (i<=j){
+            if(!(u_word.charAt(i)>='A'&&u_word.charAt(i)<='Z')){
                 i++;
-            }else{
+            }
+            if(!(u_word.charAt(j)>='A'&&u_word.charAt(i)<='j')){
+                j--;
+            }
+            if(dist==j-i){
                 break;
             }
+            dist=j-i;
         }
-        while (i<word.length()){
-            s+=word.charAt(i);
+        while (i<=j){
+            s=s+word.charAt(i);
             i++;
         }
-        word=s;
-        s="";
-        i=word.length()-1;
-        while(i>=0){
-            if(!(word.charAt(i)>='A'&&word.charAt(i)<='Z')){
-                i--;
-            }else{
-                break;
-            }
-        }
-        int j=0;
-        while(j<=i){
-            s+=word.charAt(j);
-            j++;
-        }
+        System.out.println("Cleaned text: "+s);
         return s;
     }
 

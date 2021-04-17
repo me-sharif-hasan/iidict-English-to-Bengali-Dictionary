@@ -39,7 +39,6 @@ public class Window {
 
 
         JTextArea jTextArea=new JTextArea();
-        jTextArea.setBounds(0,30,300,300);
         JScrollPane jScrollPane=new JScrollPane(jTextArea);
         jScrollPane.setBounds(0,30,300,300);
         Tools.getConfig().addEvent(new Event() {
@@ -49,7 +48,7 @@ public class Window {
                 if(prev.equals(Tools.getConfig().getLatestTranslation())){
                     return;
                 }
-                jTextArea.append(Tools.getConfig().getLatestTranslation()+"\n");
+                jTextArea.append(Tools.getConfig().getLatestTranslation());
                 jScrollPane.validate();
                 prev=Tools.getConfig().getLatestTranslation();
                 jTextArea.setCaretPosition(jTextArea.getText().length() - 1);
@@ -60,8 +59,8 @@ public class Window {
         jFrame.addComponentListener(new ComponentListener() {
             @Override
             public void componentResized(ComponentEvent componentEvent) {
-                jScrollPane.setSize(jFrame.getWidth(),jFrame.getHeight()-30);
-                jTextArea.setSize(jFrame.getWidth(),jFrame.getHeight()-30);
+                jScrollPane.setSize(jFrame.getWidth(),jFrame.getHeight()-70);
+                jTextArea.setSize(jFrame.getWidth(),jFrame.getHeight()-70);
                 search.setSize(jFrame.getWidth(),30);
             }
 
