@@ -18,6 +18,7 @@ public class Window {
             e.printStackTrace();
         }
 
+
         jFrame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
         jFrame.setSize(300,340);
         jFrame.setLayout(null);
@@ -39,7 +40,7 @@ public class Window {
 
 
         JTextArea jTextArea=new JTextArea();
-        jTextArea.setText("Dictionary loading.\n");
+
         JScrollPane jScrollPane=new JScrollPane(jTextArea);
         jScrollPane.setBounds(0,30,300,300);
         Tools.getConfig().addEvent(new Event() {
@@ -57,7 +58,7 @@ public class Window {
                 search.setText(prev.split(":")[0]);
             }
         });
-        jTextArea.append("Dictionary has loaded successfully.\n");
+
 
         jFrame.addComponentListener(new ComponentListener() {
             @Override
@@ -82,6 +83,14 @@ public class Window {
 
             }
         });
+
+        try {
+            Font bengaliFont=Font.createFont(Font.TRUETYPE_FONT, Tools.getConfig().getRes("/kalpurush.ttf")).deriveFont(18f);
+            search.setFont(bengaliFont);
+            jTextArea.setFont(bengaliFont);
+        } catch (Exception e){
+            System.err.println(e.getLocalizedMessage());
+        }
 
         jFrame.add(jScrollPane);
         jFrame.setVisible(true);
