@@ -9,6 +9,11 @@ public class Tools {
     private HashMap<String, String> hashMap=new HashMap<String,String>();
     private List<Event> events=new ArrayList<Event>();
     String latest_translation="";
+    String latest_source="";  // Store source text separately
+
+    // Language settings
+    private String sourceLanguage = "en";
+    private String targetLanguage = "bn";
 
     static boolean loading=false;
 
@@ -30,6 +35,23 @@ public class Tools {
         System.out.println("Loading has successfully completed!");
         loading=false;
     }
+
+    public void setSourceLanguage(String lang) {
+        this.sourceLanguage = lang;
+    }
+
+    public void setTargetLanguage(String lang) {
+        this.targetLanguage = lang;
+    }
+
+    public String getSourceLanguage() {
+        return this.sourceLanguage;
+    }
+
+    public String getTargetLanguage() {
+        return this.targetLanguage;
+    }
+
     public InputStream getRes(String file){
         return Tools.class.getResourceAsStream(file);
     }
@@ -38,13 +60,14 @@ public class Tools {
         List<String> theSentence=new ArrayList<String>();
         theSentence.add(upword);
         try{
-            List<String> translations=GoogleTranslateClient.getInstance().translateList(theSentence,"ja","bn");
+            // Use the selected languages instead of hardcoded ones
+            List<String> translations=GoogleTranslateClient.getInstance().translateList(theSentence, sourceLanguage, targetLanguage);
             if(translations.isEmpty()){
-                return "ডেটাবেসে নেই!";
+                return "Translation not available!";
             }
             return translations.get(0);
         }catch(Exception e){
-            return "ডেটাবেসে নেই!";
+            return "Translation error: " + e.getMessage();
         }
 //        upword=upword.toUpperCase(Locale.ROOT);
 //        return hashMap.getOrDefault(upword, "ডেটাবেসে নেই!");
@@ -53,18 +76,30 @@ public class Tools {
     public void callEvent(String type){
         if(type.equals("new_text")){
             latest_translation="";
+            latest_source="";
             String word= list.get(list.size() - 1);
             word=word.trim();
-            latest_translation = word + ": " + meaning(word) + "\n";
+            latest_source = word;  // Store source separately
+            latest_translation = meaning(word);  // Store translation only
             if(latest_translation.equals("")) return;
             for(Event evt:events){
                 evt.event();
             }
         }
     }
+
     public String getLatestTranslation(){
         return latest_translation;
     }
+
+    public String getLatestSource(){
+        return latest_source;
+    }
+
+    public String getLatestTranslationFormatted(){
+        return latest_source + ": " + latest_translation + "\n";
+    }
+
     public void regNewText(String s){
         list.add(s);
         if(list.size()>10){
