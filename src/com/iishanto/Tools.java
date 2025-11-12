@@ -26,14 +26,6 @@ public class Tools {
         this.targetLanguage = lang;
     }
 
-    public String getSourceLanguage() {
-        return this.sourceLanguage;
-    }
-
-    public String getTargetLanguage() {
-        return this.targetLanguage;
-    }
-
     public InputStream getRes(String file){
         // Remove leading slash if present
         String resourcePath = file.startsWith("/") ? file.substring(1) : file;

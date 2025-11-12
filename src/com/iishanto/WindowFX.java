@@ -18,6 +18,8 @@ import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Objects;
+
 import com.google.gson.Gson;
 import com.google.gson.JsonObject;
 import com.google.gson.JsonArray;
@@ -28,7 +30,7 @@ public class WindowFX extends Application {
     private ComboBox<LanguageItem> targetLanguageCombo;
     private TextArea sourceTextArea;
     private TextArea translationTextArea;
-    private List<String> translationHistory = new ArrayList<>();
+    private final List<String> translationHistory = new ArrayList<>();
     private boolean isAlwaysOnTop = true;
     private Button alwaysOnTopButton;
 
@@ -80,7 +82,7 @@ public class WindowFX extends Application {
             InputStream cssStream = getClass().getResourceAsStream("/res/dark-theme.css");
             if (cssStream != null) {
                 cssStream.close();
-                scene.getStylesheets().add(getClass().getResource("/res/dark-theme.css").toExternalForm());
+                scene.getStylesheets().add(Objects.requireNonNull(getClass().getResource("/res/dark-theme.css")).toExternalForm());
                 System.out.println("✓ Dark theme CSS loaded successfully");
             }
         } catch (Exception e) {
@@ -91,6 +93,12 @@ public class WindowFX extends Application {
         primaryStage.setMinWidth(600);
         primaryStage.setMinHeight(100);
 
+        // Add shutdown hook for proper cleanup
+        primaryStage.setOnCloseRequest(event -> {
+            System.out.println("Application closing...");
+            shutdown();
+        });
+
         // Setup event handlers after UI is created
         Platform.runLater(this::setupEventHandlers);
 
@@ -99,6 +107,25 @@ public class WindowFX extends Application {
         System.out.println("=== JavaFX Window Initialized ===");
         System.out.println("✓ Using OS native font rendering");
         System.out.println("✓ Hardware-accelerated rendering enabled");
+    }
+
+    @Override
+    public void stop() throws Exception {
+        System.out.println("JavaFX Application stopping...");
+        shutdown();
+        super.stop();
+    }
+
+    private void shutdown() {
+        // Stop clipboard monitoring
+        ClipBoard clipBoard = Main.getClipBoard();
+        if (clipBoard != null) {
+            clipBoard.stop();
+        }
+
+        // Exit the application
+        Platform.exit();
+        System.exit(0);
     }
 
     private void loadIcon() {
@@ -286,7 +313,7 @@ public class WindowFX extends Application {
         comboBox.getItems().addAll(items);
 
         // Custom cell renderer
-        comboBox.setCellFactory(lv -> new ListCell<LanguageItem>() {
+        comboBox.setCellFactory(lv -> new ListCell<>() {
             @Override
             protected void updateItem(LanguageItem item, boolean empty) {
                 super.updateItem(item, empty);
@@ -298,7 +325,7 @@ public class WindowFX extends Application {
             }
         });
 
-        comboBox.setButtonCell(new ListCell<LanguageItem>() {
+        comboBox.setButtonCell(new ListCell<>() {
             @Override
             protected void updateItem(LanguageItem item, boolean empty) {
                 super.updateItem(item, empty);
@@ -395,7 +422,7 @@ public class WindowFX extends Application {
 
         // Apply same stylesheet
         try {
-            scene.getStylesheets().add(getClass().getResource("/res/dark-theme.css").toExternalForm());
+            scene.getStylesheets().add(Objects.requireNonNull(getClass().getResource("/res/dark-theme.css")).toExternalForm());
         } catch (Exception e) {
             System.err.println("Warning: Could not load CSS for dialog: " + e.getMessage());
         }
@@ -418,23 +445,20 @@ public class WindowFX extends Application {
     }
 
     private void setupEventHandlers() {
-        Tools.getConfig().addEvent(new Event() {
-            @Override
-            public void event() {
-                // Get source and translation separately
-                String source = Tools.getConfig().getLatestSource();
-                String translation = Tools.getConfig().getLatestTranslation();
+        Tools.getConfig().addEvent(() -> {
+            // Get source and translation separately
+            String source = Tools.getConfig().getLatestSource();
+            String translation = Tools.getConfig().getLatestTranslation();
 
-                if (source != null && !source.isEmpty() && translation != null && !translation.isEmpty()) {
-                    sourceTextArea.setText(source);
-                    translationTextArea.setText(translation);
+            if (source != null && !source.isEmpty() && translation != null && !translation.isEmpty()) {
+                sourceTextArea.setText(source);
+                translationTextArea.setText(translation);
 
-                    // Add formatted version to history
-                    String historyEntry = Tools.getConfig().getLatestTranslationFormatted();
-                    translationHistory.add(historyEntry);
-                    if (translationHistory.size() > 50) {
-                        translationHistory.remove(0);
-                    }
+                // Add formatted version to history
+                String historyEntry = Tools.getConfig().getLatestTranslationFormatted();
+                translationHistory.add(historyEntry);
+                if (translationHistory.size() > 50) {
+                    translationHistory.remove(0);
                 }
             }
         });
