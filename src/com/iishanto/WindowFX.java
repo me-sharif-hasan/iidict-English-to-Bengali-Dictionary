@@ -14,6 +14,11 @@ import javafx.scene.text.Font;
 import javafx.stage.Modality;
 import javafx.stage.Stage;
 import javafx.scene.image.Image;
+import javafx.animation.RotateTransition;
+import javafx.scene.shape.Circle;
+import javafx.scene.shape.Arc;
+import javafx.scene.shape.ArcType;
+import javafx.util.Duration;
 
 import java.io.InputStream;
 import java.io.InputStreamReader;
@@ -34,6 +39,10 @@ public class WindowFX extends Application {
     private final List<String> translationHistory = new ArrayList<>();
     private boolean isAlwaysOnTop = true;
     private Button alwaysOnTopButton;
+    private Button translateButton;
+    private Polygon triangleIcon;
+    private Arc spinnerIcon;
+    private RotateTransition spinnerAnimation;
 
     // Language class to hold language code and display name
     private static class LanguageItem {
@@ -415,11 +424,11 @@ public class WindowFX extends Application {
         HBox.setHgrow(rightPanel, Priority.ALWAYS);
 
         // Foreground: Translate button
-        Button translateBtn = createTranslateButton();
-        StackPane.setAlignment(translateBtn, Pos.BOTTOM_CENTER);
-        StackPane.setMargin(translateBtn, new Insets(0, 0, 60, 0));
+        translateButton = createTranslateButton();
+        StackPane.setAlignment(translateButton, Pos.BOTTOM_CENTER);
+        StackPane.setMargin(translateButton, new Insets(0, 0, 60, 0));
 
-        stack.getChildren().addAll(textPanels, translateBtn);
+        stack.getChildren().addAll(textPanels, translateButton);
         return stack;
     }
 
@@ -481,10 +490,10 @@ public class WindowFX extends Application {
         btn.getStyleClass().add("translate-button");
 
         // Create triangle shape (play/forward icon)
-        Polygon triangle = new Polygon();
-        triangle.getPoints().addAll(-8.0, -10.0, 10.0, 0.0, -8.0, 10.0);
-        triangle.setFill(Color.WHITE);
-        btn.setGraphic(triangle);
+        triangleIcon = new Polygon();
+        triangleIcon.getPoints().addAll(-8.0, -10.0, 10.0, 0.0, -8.0, 10.0);
+        triangleIcon.setFill(Color.WHITE);
+        btn.setGraphic(triangleIcon);
 
         btn.setTooltip(new Tooltip("Translate (or press Ctrl+Enter)"));
         btn.setOnAction(e -> performTranslation());
@@ -536,6 +545,9 @@ public class WindowFX extends Application {
         if (text.isEmpty()) {
             return;
         }
+
+        // Show spinner immediately on UI thread
+        showSpinner();
 
         Tools.getConfig().regNewText(text);
         Tools.getConfig().callEvent("new_text");
@@ -629,21 +641,33 @@ public class WindowFX extends Application {
     }
 
     private void setupEventHandlers() {
+        // Register translation start callback
+        Tools.getConfig().setTranslationStartCallback(() -> {
+            // This runs when translation starts (on background thread)
+            Platform.runLater(this::showSpinner);
+        });
+
         Tools.getConfig().addEvent(() -> {
             // Get source and translation separately
             String source = Tools.getConfig().getLatestSource();
             String translation = Tools.getConfig().getLatestTranslation();
 
             if (source != null && !source.isEmpty() && translation != null && !translation.isEmpty()) {
-                sourceTextArea.setText(source);
-                translationTextArea.setText(translation);
+                // Update UI on JavaFX thread
+                Platform.runLater(() -> {
+                    sourceTextArea.setText(source);
+                    translationTextArea.setText(translation);
 
-                // Add formatted version to history
-                String historyEntry = Tools.getConfig().getLatestTranslationFormatted();
-                translationHistory.add(historyEntry);
-                if (translationHistory.size() > 50) {
-                    translationHistory.remove(0);
-                }
+                    // Add formatted version to history
+                    String historyEntry = Tools.getConfig().getLatestTranslationFormatted();
+                    translationHistory.add(historyEntry);
+                    if (translationHistory.size() > 50) {
+                        translationHistory.remove(0);
+                    }
+
+                    // Hide spinner when translation is complete
+                    hideSpinner();
+                });
             }
         });
     }
@@ -701,5 +725,42 @@ public class WindowFX extends Application {
             new LanguageItem("th", "Thai")
         };
     }
-}
 
+    /**
+     * Show the loading spinner on the translate button
+     */
+    private void showSpinner() {
+        // Create spinner icon if not already created
+        if (spinnerIcon == null) {
+            spinnerIcon = new Arc(0, 0, 10, 10, 90, 270);
+            spinnerIcon.setFill(Color.TRANSPARENT);
+            spinnerIcon.setStroke(Color.WHITE);
+            spinnerIcon.setStrokeWidth(3);
+            spinnerIcon.setType(ArcType.OPEN);
+
+            // Create rotation animation for spinner
+            spinnerAnimation = new RotateTransition(Duration.seconds(1), spinnerIcon);
+            spinnerAnimation.setFromAngle(0);
+            spinnerAnimation.setToAngle(360);
+            spinnerAnimation.setCycleCount(RotateTransition.INDEFINITE);
+        }
+
+        // Switch to spinner graphic
+        translateButton.setGraphic(spinnerIcon);
+
+        // Start spinner animation
+        spinnerAnimation.play();
+    }
+
+    /**
+     * Hide the loading spinner on the translate button
+     */
+    private void hideSpinner() {
+        if (spinnerAnimation != null) {
+            // Stop spinner animation
+            spinnerAnimation.stop();
+        }
+        // Restore triangle graphic
+        translateButton.setGraphic(triangleIcon);
+    }
+}

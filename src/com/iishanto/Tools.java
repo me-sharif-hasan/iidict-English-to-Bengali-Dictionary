@@ -14,6 +14,9 @@ public class Tools {
     private String sourceLanguage = "auto";
     private String targetLanguage = "bn";
 
+    // Callback for translation start
+    private Event translationStartCallback = null;
+
     Tools(){
         System.out.println("Translator initialized with Google Translate API");
     }
@@ -24,6 +27,10 @@ public class Tools {
 
     public void setTargetLanguage(String lang) {
         this.targetLanguage = lang;
+    }
+
+    public void setTranslationStartCallback(Event callback) {
+        this.translationStartCallback = callback;
     }
 
     public InputStream getRes(String file){
@@ -66,11 +73,26 @@ public class Tools {
             word=word.trim();
             // Decode HTML entities in source text
             latest_source = decodeHtmlEntities(word);  // Store source separately
-            latest_translation = meaning(word);  // Store translation only (already decoded in meaning())
-            if(latest_translation.isEmpty()) return;
-            for(Event evt:events){
-                evt.event();
+
+            // Notify translation started
+            if (translationStartCallback != null) {
+                translationStartCallback.event();
             }
+
+            // Run translation in background thread
+            final String textToTranslate = word;
+            new Thread(() -> {
+                try {
+                    latest_translation = meaning(textToTranslate);  // Store translation only (already decoded in meaning())
+                    if(latest_translation.isEmpty()) return;
+                    for(Event evt:events){
+                        evt.event();
+                    }
+                } catch (Exception e) {
+                    System.err.println("Translation error: " + e.getMessage());
+                    e.printStackTrace();
+                }
+            }).start();
         }
     }
 
