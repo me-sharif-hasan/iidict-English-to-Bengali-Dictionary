@@ -1,6 +1,8 @@
 package com.iishanto;
 
 import java.io.InputStream;
+import java.net.URLEncoder;
+import java.nio.charset.StandardCharsets;
 import java.util.*;
 
 public class Tools {
@@ -33,6 +35,18 @@ public class Tools {
         this.translationStartCallback = callback;
     }
 
+    public String getTtsUrl(String text,String tl){
+        String encodedText="";
+        try{
+            encodedText = URLEncoder.encode(text, StandardCharsets.UTF_8.toString());
+        }catch (Exception e){
+            encodedText = "TextEncodingError";
+        }
+        String ttsUrl = "https://translate.google.com/translate_tts?ie=UTF-8&q="
+                + encodedText + "&tl="+tl+"&client=gtx";
+        return ttsUrl;
+    }
+
     public InputStream getRes(String file){
         // Remove leading slash if present
         String resourcePath = file.startsWith("/") ? file.substring(1) : file;
@@ -50,16 +64,14 @@ public class Tools {
     }
 
     String meaning(String upword){
-        List<String> theSentence=new ArrayList<>();
-        theSentence.add(upword);
         try{
             // Use Google Translate with the selected languages
-            List<String> translations=GoogleTranslateClient.getInstance().translateList(theSentence, sourceLanguage, targetLanguage);
-            if(translations.isEmpty()){
+            String translation=GoogleTranslateClient.getInstance().translateList(upword, sourceLanguage, targetLanguage);
+            if(translation.isEmpty()){
                 return "Translation not available!";
             }
             // Decode HTML entities in the translation result
-            return decodeHtmlEntities(translations.get(0));
+            return decodeHtmlEntities(translation);
         }catch(Exception e){
             return "Translation error: " + e.getMessage();
         }

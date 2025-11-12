@@ -39,19 +39,30 @@ public class WindowFX extends Application {
     private final List<String> translationHistory = new ArrayList<>();
     private boolean isAlwaysOnTop = true;
     private Button alwaysOnTopButton;
+    private Button wrapButton;
+    private boolean isWrapEnabled = false;
     private Button translateButton;
     private Polygon triangleIcon;
     private Arc spinnerIcon;
     private RotateTransition spinnerAnimation;
 
+    // Audio players for TTS
+    private AudioPlayer sourceAudioPlayer;
+    private AudioPlayer translationAudioPlayer;
+    private Button sourceSpeakButton;
+    private Button translationSpeakButton;
+    private java.util.Map<String, String> languageSentenceEnders = new java.util.HashMap<>();
+
     // Language class to hold language code and display name
     private static class LanguageItem {
         String code;
         String name;
+        String sentenceEnders;
 
-        LanguageItem(String code, String name) {
+        LanguageItem(String code, String name, String sentenceEnders) {
             this.code = code;
             this.name = name;
+            this.sentenceEnders = sentenceEnders != null ? sentenceEnders : ".!?";
         }
 
         @Override
@@ -65,6 +76,10 @@ public class WindowFX extends Application {
         this.primaryStage = stage;
         primaryStage.setTitle("Universal Translator");
         primaryStage.setAlwaysOnTop(true);
+
+        // Initialize audio players
+        sourceAudioPlayer = new AudioPlayer();
+        translationAudioPlayer = new AudioPlayer();
 
         // Initialize font rendering system
         initializeFontRendering();
@@ -88,7 +103,7 @@ public class WindowFX extends Application {
         HBox statusBar = createStatusBar();
         root.setBottom(statusBar);
 
-        Scene scene = new Scene(root, 600, 300);
+        Scene scene = new Scene(root, 700, 300);
 
         // Load CSS stylesheet
         try {
@@ -103,7 +118,7 @@ public class WindowFX extends Application {
         }
 
         primaryStage.setScene(scene);
-        primaryStage.setMinWidth(600);
+        primaryStage.setMinWidth(700);
         primaryStage.setMinHeight(100);
 
         // Add shutdown hook for proper cleanup
@@ -372,6 +387,7 @@ public class WindowFX extends Application {
             LanguageItem selected = sourceLanguageCombo.getValue();
             if (selected != null) {
                 Tools.getConfig().setSourceLanguage(selected.code);
+                updateSpeakButtonVisibility();
             }
         });
 
@@ -379,6 +395,7 @@ public class WindowFX extends Application {
             LanguageItem selected = targetLanguageCombo.getValue();
             if (selected != null) {
                 Tools.getConfig().setTargetLanguage(selected.code);
+                updateSpeakButtonVisibility();
             }
         });
 
@@ -397,6 +414,11 @@ public class WindowFX extends Application {
         alwaysOnTopButton.getStyleClass().add("active"); // Start active
         alwaysOnTopButton.setOnAction(e -> toggleAlwaysOnTop());
         rightPanel.getChildren().add(alwaysOnTopButton);
+
+        // Wrap text toggle button
+        wrapButton = createIconButton("WRAP", "Toggle Text Wrap");
+        wrapButton.setOnAction(e -> toggleWrap());
+        rightPanel.getChildren().add(wrapButton);
 
         // History button
         Button historyButton = createIconButton("HIST", "Show History");
@@ -437,12 +459,30 @@ public class WindowFX extends Application {
         panel.getStyleClass().add("main-container");
 
         // Header
-        HBox header = new HBox();
+        HBox header = new HBox(8);
         header.getStyleClass().add("panel-header");
+        header.setAlignment(Pos.CENTER_LEFT);
 
         Label titleLabel = new Label(title);
         titleLabel.getStyleClass().add("panel-title");
-        header.getChildren().add(titleLabel);
+
+        // Create speak button
+        Button speakButton = new Button("🔊");
+        speakButton.getStyleClass().add("icon-button");
+        speakButton.setStyle("-fx-padding: 2 6 2 6; -fx-font-size: 12px; -fx-min-width: 28px; -fx-min-height: 24px;");
+        speakButton.setTooltip(new Tooltip("Play audio"));
+        speakButton.setVisible(false); // Initially hidden
+        speakButton.setManaged(false); // Don't take up space when hidden
+
+        if (isSource) {
+            sourceSpeakButton = speakButton;
+            speakButton.setOnAction(e -> playSourceAudio());
+        } else {
+            translationSpeakButton = speakButton;
+            speakButton.setOnAction(e -> playTranslationAudio());
+        }
+
+        header.getChildren().addAll(titleLabel, speakButton);
 
         panel.getChildren().add(header);
 
@@ -463,14 +503,103 @@ public class WindowFX extends Application {
                     event.consume();
                 }
             });
+
+            // Update speak button visibility when text changes
+            textArea.textProperty().addListener((obs, oldText, newText) -> updateSpeakButtonVisibility());
         } else {
             translationTextArea = textArea;
             textArea.setEditable(false);
+
+            // Update speak button visibility when text changes
+            textArea.textProperty().addListener((obs, oldText, newText) -> updateSpeakButtonVisibility());
         }
 
         panel.getChildren().add(textArea);
 
         return panel;
+    }
+
+    /**
+     * Update speak button visibility based on language selection and text content
+     */
+    private void updateSpeakButtonVisibility() {
+        // Update source speak button
+        if (sourceSpeakButton != null) {
+            LanguageItem sourceItem = sourceLanguageCombo.getValue();
+            boolean showSourceButton = sourceItem != null &&
+                                       !sourceItem.code.equals("auto") &&
+                                       sourceTextArea != null &&
+                                       !sourceTextArea.getText().trim().isEmpty();
+            sourceSpeakButton.setVisible(showSourceButton);
+            sourceSpeakButton.setManaged(showSourceButton);
+        }
+
+        // Update translation speak button
+        if (translationSpeakButton != null) {
+            LanguageItem targetItem = targetLanguageCombo.getValue();
+            boolean showTranslationButton = targetItem != null &&
+                                            !targetItem.code.equals("auto") &&
+                                            translationTextArea != null &&
+                                            !translationTextArea.getText().trim().isEmpty();
+            translationSpeakButton.setVisible(showTranslationButton);
+            translationSpeakButton.setManaged(showTranslationButton);
+        }
+    }
+
+    /**
+     * Play audio for source text
+     */
+    private void playSourceAudio() {
+        if (sourceAudioPlayer.isPlaying()) {
+            sourceAudioPlayer.stop();
+            sourceSpeakButton.setText("🔊");
+            return;
+        }
+
+        String text = sourceTextArea.getText().trim();
+        if (text.isEmpty()) return;
+
+        LanguageItem sourceItem = sourceLanguageCombo.getValue();
+        if (sourceItem == null || sourceItem.code.equals("auto")) return;
+
+        sourceSpeakButton.setText("⏹");
+        String sentenceEnders = sourceItem.sentenceEnders != null ? sourceItem.sentenceEnders : ".!?";
+
+        sourceAudioPlayer.playText(text, sourceItem.code, sentenceEnders,
+            () -> sourceSpeakButton.setText("🔊"),
+            error -> {
+                System.err.println("Error playing source audio: " + error);
+                sourceSpeakButton.setText("🔊");
+            }
+        );
+    }
+
+    /**
+     * Play audio for translation text
+     */
+    private void playTranslationAudio() {
+        if (translationAudioPlayer.isPlaying()) {
+            translationAudioPlayer.stop();
+            translationSpeakButton.setText("🔊");
+            return;
+        }
+
+        String text = translationTextArea.getText().trim();
+        if (text.isEmpty()) return;
+
+        LanguageItem targetItem = targetLanguageCombo.getValue();
+        if (targetItem == null || targetItem.code.equals("auto")) return;
+
+        translationSpeakButton.setText("⏹");
+        String sentenceEnders = targetItem.sentenceEnders != null ? targetItem.sentenceEnders : ".!?";
+
+        translationAudioPlayer.playText(text, targetItem.code, sentenceEnders,
+            () -> translationSpeakButton.setText("🔊"),
+            error -> {
+                System.err.println("Error playing translation audio: " + error);
+                translationSpeakButton.setText("🔊");
+            }
+        );
     }
 
     private HBox createStatusBar() {
@@ -614,7 +743,7 @@ public class WindowFX extends Application {
         bottomPanel.getChildren().add(clearButton);
         root.setBottom(bottomPanel);
 
-        Scene scene = new Scene(root, 600, 400);
+        Scene scene = new Scene(root, 700, 400);
 
         // Apply same stylesheet
         try {
@@ -637,6 +766,20 @@ public class WindowFX extends Application {
         } else {
             alwaysOnTopButton.getStyleClass().remove("active");
             alwaysOnTopButton.setTooltip(new Tooltip("Always On Top (OFF) - Click to enable"));
+        }
+    }
+
+    private void toggleWrap() {
+        isWrapEnabled = !isWrapEnabled;
+        sourceTextArea.setWrapText(isWrapEnabled);
+        translationTextArea.setWrapText(isWrapEnabled);
+
+        if (isWrapEnabled) {
+            wrapButton.getStyleClass().add("active");
+            wrapButton.setTooltip(new Tooltip("Text Wrap (ON) - Click to disable"));
+        } else {
+            wrapButton.getStyleClass().remove("active");
+            wrapButton.setTooltip(new Tooltip("Text Wrap (OFF) - Click to enable"));
         }
     }
 
@@ -667,6 +810,9 @@ public class WindowFX extends Application {
 
                     // Hide spinner when translation is complete
                     hideSpinner();
+
+                    // Update speak button visibility after translation
+                    updateSpeakButtonVisibility();
                 });
             }
         });
@@ -690,7 +836,8 @@ public class WindowFX extends Application {
                 JsonObject langObj = languagesArray.get(i).getAsJsonObject();
                 String code = langObj.get("code").getAsString();
                 String name = langObj.get("name").getAsString();
-                languageList.add(new LanguageItem(code, name));
+                String sentenceEnders = langObj.has("sentenceEnders") ? langObj.get("sentenceEnders").getAsString() : null;
+                languageList.add(new LanguageItem(code, name, sentenceEnders));
             }
 
             System.out.println("Successfully loaded " + languageList.size() + " languages from languages.json");
@@ -705,24 +852,24 @@ public class WindowFX extends Application {
     // Fallback languages if JSON loading fails
     private LanguageItem[] getFallbackLanguages() {
         return new LanguageItem[]{
-            new LanguageItem("auto", "Auto Detect"),
-            new LanguageItem("en", "English"),
-            new LanguageItem("bn", "Bengali"),
-            new LanguageItem("hi", "Hindi"),
-            new LanguageItem("ja", "Japanese"),
-            new LanguageItem("zh-CN", "Chinese (Simplified)"),
-            new LanguageItem("zh-TW", "Chinese (Traditional)"),
-            new LanguageItem("ko", "Korean"),
-            new LanguageItem("ar", "Arabic"),
-            new LanguageItem("es", "Spanish"),
-            new LanguageItem("fr", "French"),
-            new LanguageItem("de", "German"),
-            new LanguageItem("it", "Italian"),
-            new LanguageItem("pt", "Portuguese"),
-            new LanguageItem("ru", "Russian"),
-            new LanguageItem("tr", "Turkish"),
-            new LanguageItem("vi", "Vietnamese"),
-            new LanguageItem("th", "Thai")
+            new LanguageItem("auto", "Auto Detect", ".!?"),
+            new LanguageItem("en", "English", ".!?"),
+            new LanguageItem("bn", "Bengali", "।!?"),
+            new LanguageItem("hi", "Hindi", "।!?"),
+            new LanguageItem("ja", "Japanese", "。！？"),
+            new LanguageItem("zh-CN", "Chinese (Simplified)", "。！？"),
+            new LanguageItem("zh-TW", "Chinese (Traditional)", "。！？"),
+            new LanguageItem("ko", "Korean", ".!?"),
+            new LanguageItem("ar", "Arabic", ".!?۔"),
+            new LanguageItem("es", "Spanish", ".!?"),
+            new LanguageItem("fr", "French", ".!?"),
+            new LanguageItem("de", "German", ".!?"),
+            new LanguageItem("it", "Italian", ".!?"),
+            new LanguageItem("pt", "Portuguese", ".!?"),
+            new LanguageItem("ru", "Russian", ".!?"),
+            new LanguageItem("tr", "Turkish", ".!?"),
+            new LanguageItem("vi", "Vietnamese", ".!?"),
+            new LanguageItem("th", "Thai", ".!?")
         };
     }
 

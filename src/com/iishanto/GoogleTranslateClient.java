@@ -17,9 +17,8 @@ public class GoogleTranslateClient {
     private static final Map<String, Map<String, String>> cache = new HashMap<>();
 
     // Use rare Unicode characters as placeholders that won't be translated
-    private static final String NEWLINE_PLACEHOLDER = "<br>";  // Line Separator (rarely used)
-    private static final String SPACE_PLACEHOLDER = "<g>";  // Line Separator (rarely used)
-    private static final String TAB_PLACEHOLDER = "<tr>";      // Paragraph Separator (rarely used)
+    private static final String SPACE_PLACEHOLDER = "<sp>";
+    private static final String TAB_PLACEHOLDER = "<tr>";
 
     private final HttpClient client = HttpClient.newHttpClient();
     private String token;
@@ -36,9 +35,37 @@ public class GoogleTranslateClient {
      */
     private String encodeFormatting(String text) {
         if (text == null) return null;
-        return text.replace("\n", NEWLINE_PLACEHOLDER)
-                .replace("\t", TAB_PLACEHOLDER)
-                .replace(" ", SPACE_PLACEHOLDER); // Preserve multiple spaces
+        if (text.isEmpty()) return " ";
+        StringBuilder prefix = new StringBuilder();
+        // If text starts or ends with space, preserve it by adding placeholders
+        int i = 0;
+        while (i < text.length()) {
+            if (text.charAt(i) == ' '){
+                prefix.append(SPACE_PLACEHOLDER);
+            }else if (text.charAt(i) == '\t'){
+                prefix.append(TAB_PLACEHOLDER);
+            }else{
+                break;
+            }
+            i++;
+        }
+
+        StringBuilder suffix = new StringBuilder();
+        int j= text.length() -1;
+        while (j >=0){
+            if (text.charAt(j) == ' '){
+                suffix.append(new StringBuilder(SPACE_PLACEHOLDER).reverse());
+            }else if (text.charAt(j) == '\t'){
+                suffix.append(new StringBuilder(TAB_PLACEHOLDER).reverse());
+            }else{
+                break;
+            }
+            j--;
+        }
+        prefix.append(text.trim());
+        prefix.append(suffix.reverse());
+
+        return prefix.toString();
     }
 
     /**
@@ -46,9 +73,8 @@ public class GoogleTranslateClient {
      */
     private String decodeFormatting(String text) {
         if (text == null) return null;
-        return text.replace(NEWLINE_PLACEHOLDER, "\n")
-                .replace(SPACE_PLACEHOLDER, " ")
-                .replace(TAB_PLACEHOLDER, "\t");
+        return text.replace(TAB_PLACEHOLDER, "\t")
+                .replace(SPACE_PLACEHOLDER, " ");
     }
 
     public String getTokenJs() throws IOException, InterruptedException {
@@ -62,7 +88,7 @@ public class GoogleTranslateClient {
         return null;
     }
 
-    public List<String> translateList(List<String> wordList, String sl, String tl) throws IOException, InterruptedException {
+    public String translateList(String sentence, String sl, String tl) throws IOException, InterruptedException {
         if (token == null) token = getTokenJs();
         if (token != null) {
 
@@ -72,6 +98,10 @@ public class GoogleTranslateClient {
 
             // Encode formatting in input texts
             List<String> encodedWordList = new ArrayList<>();
+            sentence=sentence.replace(TAB_PLACEHOLDER, "&lt;tr&gt;");
+            sentence=sentence.replace(SPACE_PLACEHOLDER, "&lt;sp&gt;");
+            String[] paragraphs = sentence.split("\n");
+            List<String> wordList = new ArrayList<>(Arrays.asList(paragraphs));
             for (String word : wordList) {
                 encodedWordList.add(encodeFormatting(word));
             }
@@ -113,7 +143,7 @@ public class GoogleTranslateClient {
                         finalData.add(cache.get(tl).get(encodedWordList.get(i)));
                     }
                 }
-                return finalData;
+                return String.join("\n", finalData);
             }
         }
         return null;
