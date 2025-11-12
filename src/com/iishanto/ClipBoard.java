@@ -1,5 +1,6 @@
 package com.iishanto;
 
+import javafx.application.Platform;
 import java.awt.*;
 import java.awt.datatransfer.DataFlavor;
 import java.awt.datatransfer.UnsupportedFlavorException;
@@ -22,7 +23,7 @@ public class ClipBoard {
         while (true){
             try {
                 String text=getClipBoard();
-                if(text.equals(previous)||text.equals("")) {
+                if(text.equals(previous)|| text.isEmpty()) {
                     first_cpy=false;
                     continue;
                 }
@@ -32,7 +33,10 @@ public class ClipBoard {
                     continue;
                 }
                 Tools.getConfig().regNewText(text);
-                Tools.getConfig().callEvent("new_text");
+                // Use Platform.runLater() to update JavaFX UI on the JavaFX Application Thread
+                Platform.runLater(() -> {
+                    Tools.getConfig().callEvent("new_text");
+                });
                 previous=text;
                 TimeUnit.MILLISECONDS.sleep(500);
             } catch (InterruptedException e) {

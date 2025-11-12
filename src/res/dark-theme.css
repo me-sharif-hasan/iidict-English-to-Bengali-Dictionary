@@ -1,0 +1,200 @@
+/* Root colors - IntelliJ Dark Theme */
+.root {
+    -fx-background-primary: #2B2B2B;
+    -fx-background-secondary: #3C3F41;
+    -fx-background-tertiary: #45494A;
+    -fx-text-primary: #BBBBBB;
+    -fx-text-secondary: #808080;
+    -fx-accent-blue: #4C92CC;
+    -fx-accent-hover: #5EA1D6;
+    -fx-border-color: #222222;
+    -fx-selection-bg: #264F78;
+}
+
+.root {
+    -fx-base: #2B2B2B;
+    -fx-background: #2B2B2B;
+    -fx-control-inner-background: #2B2B2B;
+    -fx-font-family: "System";
+    -fx-font-size: 14px;
+}
+
+/* Main application background */
+.main-container {
+    -fx-background-color: #2B2B2B;
+}
+
+/* Toolbar styling */
+.toolbar {
+    -fx-background-color: #3C3F41;
+    -fx-padding: 8 12 8 12;
+}
+
+/* Text areas - Uses OS font rendering */
+.text-area {
+    -fx-background-color: #2B2B2B;
+    -fx-text-fill: #BBBBBB;
+    -fx-prompt-text-fill: #808080;
+    -fx-highlight-fill: #264F78;
+    -fx-highlight-text-fill: #BBBBBB;
+    -fx-font-size: 14px;
+    -fx-font-smoothing-type: lcd;
+}
+
+.text-area .content {
+    -fx-background-color: #2B2B2B;
+}
+
+.text-area .scroll-pane {
+    -fx-background-color: #2B2B2B;
+}
+
+.text-area .scroll-pane .viewport {
+    -fx-background-color: #2B2B2B;
+}
+
+/* ComboBox styling */
+.combo-box {
+    -fx-background-color: #45494A;
+    -fx-text-fill: #BBBBBB;
+    -fx-border-color: #222222;
+}
+
+.combo-box .list-cell {
+    -fx-background-color: #45494A;
+    -fx-text-fill: #BBBBBB;
+}
+
+.combo-box-popup .list-view {
+    -fx-background-color: #45494A;
+    -fx-border-color: #222222;
+}
+
+.combo-box-popup .list-view .list-cell {
+    -fx-background-color: #45494A;
+    -fx-text-fill: #BBBBBB;
+    -fx-padding: 4 8 4 8;
+}
+
+.combo-box-popup .list-view .list-cell:hover {
+    -fx-background-color: #264F78;
+}
+
+.combo-box-popup .list-view .list-cell:selected {
+    -fx-background-color: #264F78;
+}
+
+/* Buttons */
+.button {
+    -fx-background-color: #4C92CC;
+    -fx-text-fill: white;
+    -fx-font-weight: bold;
+    -fx-background-radius: 8;
+    -fx-cursor: hand;
+}
+
+.button:hover {
+    -fx-background-color: #5EA1D6;
+}
+
+.button:pressed {
+    -fx-background-color: #3A7AB8;
+}
+
+/* Icon buttons */
+.icon-button {
+    -fx-background-color: transparent;
+    -fx-text-fill: #BBBBBB;
+    -fx-background-radius: 8;
+    -fx-border-color: transparent;
+    -fx-cursor: hand;
+    -fx-font-weight: bold;
+}
+
+.icon-button:hover {
+    -fx-background-color: #2B2B2B;
+}
+
+.icon-button.active {
+    -fx-text-fill: #4C92CC;
+}
+
+/* Translate button */
+.translate-button {
+    -fx-background-color: #4C92CC;
+    -fx-background-radius: 30;
+    -fx-pref-width: 60;
+    -fx-pref-height: 60;
+    -fx-min-width: 60;
+    -fx-min-height: 60;
+    -fx-cursor: hand;
+}
+
+.translate-button:hover {
+    -fx-background-color: #5EA1D6;
+}
+
+.translate-button:pressed {
+    -fx-background-color: #3A7AB8;
+}
+
+/* ScrollBar styling */
+.scroll-bar {
+    -fx-background-color: #2B2B2B;
+}
+
+.scroll-bar .thumb {
+    -fx-background-color: #45494A;
+    -fx-background-radius: 4;
+}
+
+.scroll-bar .thumb:hover {
+    -fx-background-color: #5A5E60;
+}
+
+.scroll-bar .track {
+    -fx-background-color: #2B2B2B;
+}
+
+.scroll-bar .increment-button,
+.scroll-bar .decrement-button {
+    -fx-opacity: 0;
+    -fx-pref-height: 0;
+    -fx-pref-width: 0;
+}
+
+/* Status bar */
+.status-bar {
+    -fx-background-color: #3C3F41;
+    -fx-padding: 4 12 4 12;
+}
+
+.status-label {
+    -fx-text-fill: #808080;
+    -fx-font-size: 11px;
+}
+
+/* Panel headers */
+.panel-header {
+    -fx-background-color: #45494A;
+    -fx-padding: 8 12 8 12;
+}
+
+.panel-title {
+    -fx-text-fill: #BBBBBB;
+    -fx-font-weight: bold;
+    -fx-font-size: 12px;
+}
+
+/* Labels */
+.label {
+    -fx-text-fill: #BBBBBB;
+}
+
+/* Arrow label */
+.arrow-label {
+    -fx-text-fill: #808080;
+    -fx-font-size: 16px;
+    -fx-font-weight: bold;
+}
+
