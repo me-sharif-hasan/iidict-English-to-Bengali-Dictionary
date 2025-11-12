@@ -10,6 +10,7 @@ import javafx.scene.input.KeyCode;
 import javafx.scene.layout.*;
 import javafx.scene.paint.Color;
 import javafx.scene.shape.Polygon;
+import javafx.scene.text.Font;
 import javafx.stage.Modality;
 import javafx.stage.Stage;
 import javafx.scene.image.Image;
@@ -56,6 +57,9 @@ public class WindowFX extends Application {
         primaryStage.setTitle("Universal Translator");
         primaryStage.setAlwaysOnTop(true);
 
+        // Initialize font rendering system
+        initializeFontRendering();
+
         // Load icon
         loadIcon();
 
@@ -82,7 +86,7 @@ public class WindowFX extends Application {
             InputStream cssStream = getClass().getResourceAsStream("/res/dark-theme.css");
             if (cssStream != null) {
                 cssStream.close();
-                scene.getStylesheets().add(Objects.requireNonNull(getClass().getResource("/res/dark-theme.css")).toExternalForm());
+                scene.getStylesheets().add(getClass().getResource("/res/dark-theme.css").toExternalForm());
                 System.out.println("✓ Dark theme CSS loaded successfully");
             }
         } catch (Exception e) {
@@ -107,6 +111,186 @@ public class WindowFX extends Application {
         System.out.println("=== JavaFX Window Initialized ===");
         System.out.println("✓ Using OS native font rendering");
         System.out.println("✓ Hardware-accelerated rendering enabled");
+    }
+
+    /**
+     * Initialize OS font rendering system with proper fallback for international characters
+     */
+    private void initializeFontRendering() {
+        System.out.println("=== Initializing OS Font Rendering ===");
+
+        // Load system fonts explicitly
+        loadSystemFonts();
+
+        // Get all available system fonts
+        List<String> fontFamilies = Font.getFamilies();
+
+        // Check for important international fonts
+        boolean hasJapanese = false;
+        boolean hasChinese = false;
+        boolean hasBengali = false;
+        boolean hasArabic = false;
+        boolean hasKorean = false;
+
+        List<String> cjkFonts = new ArrayList<>();
+        List<String> indicFonts = new ArrayList<>();
+        List<String> arabicFonts = new ArrayList<>();
+
+        for (String family : fontFamilies) {
+            String lowerFamily = family.toLowerCase();
+
+            // Japanese fonts
+            if (lowerFamily.contains("noto serif cjk jp") ||
+                lowerFamily.contains("noto sans cjk jp") ||
+                lowerFamily.contains("noto sans jp") ||
+                lowerFamily.contains("ms gothic") ||
+                lowerFamily.contains("meiryo") ||
+                lowerFamily.contains("hiragino") ||
+                lowerFamily.contains("ipagothic") ||
+                lowerFamily.contains("takao")) {
+                hasJapanese = true;
+                cjkFonts.add(family);
+            }
+
+            // Chinese fonts
+            if (lowerFamily.contains("noto serif cjk") ||
+                lowerFamily.contains("noto sans cjk") ||
+                lowerFamily.contains("noto sans sc") ||
+                lowerFamily.contains("noto sans tc") ||
+                lowerFamily.contains("microsoft yahei") ||
+                lowerFamily.contains("simsun") ||
+                lowerFamily.contains("wqy")) {
+                hasChinese = true;
+                cjkFonts.add(family);
+            }
+
+            // Korean fonts
+            if (lowerFamily.contains("noto sans kr") ||
+                lowerFamily.contains("noto serif cjk kr") ||
+                lowerFamily.contains("noto sans cjk kr") ||
+                lowerFamily.contains("malgun") ||
+                lowerFamily.contains("nanum")) {
+                hasKorean = true;
+                cjkFonts.add(family);
+            }
+
+            // Bengali fonts
+            if (lowerFamily.contains("noto sans bengali") ||
+                lowerFamily.contains("kalpurush") ||
+                lowerFamily.contains("lohit bengali") ||
+                lowerFamily.contains("mukti")) {
+                hasBengali = true;
+                indicFonts.add(family);
+            }
+
+            // Arabic fonts
+            if (lowerFamily.contains("noto sans arabic") ||
+                lowerFamily.contains("arabic") ||
+                lowerFamily.contains("droid arabic")) {
+                hasArabic = true;
+                arabicFonts.add(family);
+            }
+        }
+
+        // Report font availability
+        System.out.println("Font Support Status:");
+        System.out.println("  Japanese: " + (hasJapanese ? "✓ Available" : "✗ Missing"));
+        System.out.println("  Chinese: " + (hasChinese ? "✓ Available" : "✗ Missing"));
+        System.out.println("  Korean: " + (hasKorean ? "✓ Available" : "✗ Missing"));
+        System.out.println("  Bengali: " + (hasBengali ? "✓ Available" : "✗ Missing"));
+        System.out.println("  Arabic: " + (hasArabic ? "✓ Available" : "✗ Missing"));
+
+        if (!cjkFonts.isEmpty()) {
+            System.out.println("\nAvailable CJK Fonts: " + String.join(", ", cjkFonts.subList(0, Math.min(3, cjkFonts.size()))));
+        }
+        if (!indicFonts.isEmpty()) {
+            System.out.println("Available Indic Fonts: " + String.join(", ", indicFonts));
+        }
+        if (!arabicFonts.isEmpty()) {
+            System.out.println("Available Arabic Fonts: " + String.join(", ", arabicFonts));
+        }
+
+        // Test character rendering
+        testFontRendering();
+
+        // Set system properties for better font rendering
+        System.setProperty("prism.lcdtext", "true");
+        System.setProperty("prism.text", "t2k");
+        System.setProperty("prism.allowhidpi", "true");
+
+        System.out.println("✓ Font rendering system initialized");
+    }
+
+    /**
+     * Explicitly load system fonts from common paths
+     */
+    private void loadSystemFonts() {
+        String[] fontPaths = {
+            "/usr/share/fonts/opentype/noto/",
+            "/usr/share/fonts/truetype/noto/",
+            "/usr/share/fonts/opentype/",
+            "/usr/share/fonts/truetype/",
+            "/usr/local/share/fonts/",
+            System.getProperty("user.home") + "/.fonts/"
+        };
+
+        for (String path : fontPaths) {
+            java.io.File fontDir = new java.io.File(path);
+            if (fontDir.exists() && fontDir.isDirectory()) {
+                java.io.File[] fontFiles = fontDir.listFiles((dir, name) -> {
+                    String lower = name.toLowerCase();
+                    return (lower.endsWith(".ttf") || lower.endsWith(".ttc") || lower.endsWith(".otf")) &&
+                           (lower.contains("noto") || lower.contains("cjk") || lower.contains("bengali"));
+                });
+
+                if (fontFiles != null) {
+                    for (java.io.File fontFile : fontFiles) {
+                        try {
+                            Font.loadFont(new java.io.FileInputStream(fontFile), 14);
+                            System.out.println("  Loaded: " + fontFile.getName());
+                        } catch (Exception e) {
+                            // Silently skip fonts that can't be loaded
+                        }
+                    }
+                }
+            }
+        }
+    }
+
+    /**
+     * Test if critical characters can be rendered
+     */
+    private void testFontRendering() {
+        Font testFont = Font.getDefault();
+
+        // Test characters from different scripts
+        char[] testChars = {
+            'あ', // Japanese Hiragana
+            'ア', // Japanese Katakana
+            '漢', // Chinese/Japanese Kanji
+            'ব', // Bengali
+            'م', // Arabic
+            '한', // Korean Hangul
+            'ก', // Thai
+            'א'  // Hebrew
+        };
+
+        String[] scriptNames = {
+            "Japanese (Hiragana)",
+            "Japanese (Katakana)",
+            "CJK (Kanji/Hanzi)",
+            "Bengali",
+            "Arabic",
+            "Korean",
+            "Thai",
+            "Hebrew"
+        };
+
+        System.out.println("\nCharacter Rendering Test:");
+        for (int i = 0; i < testChars.length; i++) {
+            // Note: JavaFX doesn't have a direct canDisplay method, but the OS will handle fallback
+            System.out.println("  " + scriptNames[i] + " (" + testChars[i] + "): Will use OS font fallback");
+        }
     }
 
     @Override

@@ -15,7 +15,8 @@
     -fx-base: #2B2B2B;
     -fx-background: #2B2B2B;
     -fx-control-inner-background: #2B2B2B;
-    -fx-font-family: "System";
+    /* Use actual installed system fonts - Noto Serif CJK found on your system */
+    -fx-font-family: "Noto Serif CJK JP", "Noto Serif CJK KR", "Noto Serif CJK SC", "Noto Serif CJK TC", "Noto Sans CJK JP", "Noto Sans CJK KR", "Noto Sans CJK SC", "Noto Sans CJK TC", "DejaVu Sans", "Liberation Sans", "FreeSans", "sans-serif";
     -fx-font-size: 14px;
 }
 
@@ -30,7 +31,7 @@
     -fx-padding: 8 12 8 12;
 }
 
-/* Text areas - Uses OS font rendering */
+/* Text areas - Uses OS font rendering with actual system fonts */
 .text-area {
     -fx-background-color: #2B2B2B;
     -fx-text-fill: #BBBBBB;
@@ -39,6 +40,8 @@
     -fx-highlight-text-fill: #BBBBBB;
     -fx-font-size: 14px;
     -fx-font-smoothing-type: lcd;
+    /* Prioritize CJK fonts that are installed */
+    -fx-font-family: "Noto Serif CJK JP", "Noto Serif CJK KR", "Noto Serif CJK SC", "Noto Serif CJK TC", "Noto Sans CJK JP", "Noto Sans CJK KR", "Noto Sans CJK SC", "Noto Sans CJK TC", "Noto Sans Bengali", "Noto Sans Arabic", "Noto Sans Devanagari", "DejaVu Sans", "Liberation Sans", "FreeSans", "Kalpurush", "sans-serif";
 }
 
 .text-area .content {
@@ -197,4 +200,3 @@
     -fx-font-size: 16px;
     -fx-font-weight: bold;
 }
-
