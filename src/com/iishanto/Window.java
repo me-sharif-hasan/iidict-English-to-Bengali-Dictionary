@@ -6,8 +6,13 @@ import javax.swing.border.EmptyBorder;
 import java.awt.*;
 import java.awt.event.*;
 import java.io.IOException;
+import java.io.InputStream;
+import java.io.InputStreamReader;
 import java.util.ArrayList;
 import java.util.List;
+import com.google.gson.Gson;
+import com.google.gson.JsonObject;
+import com.google.gson.JsonArray;
 
 public class Window {
     // IntelliJ-style dark theme colors
@@ -25,9 +30,9 @@ public class Window {
     private JComboBox<LanguageItem> targetLanguageCombo;
     private JTextArea sourceTextArea;
     private JTextArea translationTextArea;
-    private List<String> translationHistory = new ArrayList<>();
+    private final List<String> translationHistory = new ArrayList<>();
     private boolean isAlwaysOnTop = true; // Track always-on-top state - DEFAULT TO TRUE
-    private JFrame mainFrame; // Reference to the main frame
+    private final JFrame mainFrame; // Reference to the main frame
 
     // Language class to hold language code and display name
     private static class LanguageItem {
@@ -45,17 +50,76 @@ public class Window {
         }
     }
 
+    // Load languages from JSON file
+    private LanguageItem[] loadLanguagesFromJson() {
+        try {
+            InputStream langStream = Tools.getConfig().getRes("/languages.json");
+            if (langStream == null) {
+                System.err.println("Warning: languages.json not found, using fallback languages");
+                return getFallbackLanguages();
+            }
+
+            Gson gson = new Gson();
+            JsonObject jsonObject = gson.fromJson(new InputStreamReader(langStream), JsonObject.class);
+            JsonArray languagesArray = jsonObject.getAsJsonArray("languages");
+
+            List<LanguageItem> languageList = new ArrayList<>();
+            for (int i = 0; i < languagesArray.size(); i++) {
+                JsonObject langObj = languagesArray.get(i).getAsJsonObject();
+                String code = langObj.get("code").getAsString();
+                String name = langObj.get("name").getAsString();
+                languageList.add(new LanguageItem(code, name));
+            }
+
+            System.out.println("Successfully loaded " + languageList.size() + " languages from languages.json");
+            return languageList.toArray(new LanguageItem[0]);
+
+        } catch (Exception e) {
+            System.err.println("Error loading languages.json: " + e.getMessage());
+            return getFallbackLanguages();
+        }
+    }
+
+    // Fallback languages if JSON loading fails
+    private LanguageItem[] getFallbackLanguages() {
+        return new LanguageItem[]{
+            new LanguageItem("auto", "Auto Detect"),
+            new LanguageItem("en", "English"),
+            new LanguageItem("bn", "Bengali"),
+            new LanguageItem("hi", "Hindi"),
+            new LanguageItem("ja", "Japanese"),
+            new LanguageItem("zh-CN", "Chinese (Simplified)"),
+            new LanguageItem("zh-TW", "Chinese (Traditional)"),
+            new LanguageItem("ko", "Korean"),
+            new LanguageItem("ar", "Arabic"),
+            new LanguageItem("es", "Spanish"),
+            new LanguageItem("fr", "French"),
+            new LanguageItem("de", "German"),
+            new LanguageItem("it", "Italian"),
+            new LanguageItem("pt", "Portuguese"),
+            new LanguageItem("ru", "Russian"),
+            new LanguageItem("tr", "Turkish"),
+            new LanguageItem("vi", "Vietnamese"),
+            new LanguageItem("th", "Thai")
+        };
+    }
+
     public Window(){
         mainFrame = new JFrame("Universal Translator");
         try {
-            mainFrame.setIconImage(ImageIO.read(Tools.getConfig().getRes("/icon.png")));
+            InputStream iconStream = Tools.getConfig().getRes("/icon.png");
+            if(iconStream != null) {
+                mainFrame.setIconImage(ImageIO.read(iconStream));
+            } else {
+                System.err.println("Warning: Could not load icon.png from resources");
+            }
         } catch (IOException e) {
             System.err.println("Could not load icon: " + e.getMessage());
         }
 
         mainFrame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
-        mainFrame.setSize(900, 600);
-        mainFrame.setMinimumSize(new Dimension(700, 500));
+        mainFrame.setSize(600, 300);
+        mainFrame.setMinimumSize(new Dimension(600, 100));
         mainFrame.setLayout(new BorderLayout(0, 0));
         mainFrame.setAlwaysOnTop(true);  // SET ALWAYS ON TOP BY DEFAULT
 
@@ -90,37 +154,27 @@ public class Window {
         JPanel languagePanel = new JPanel(new FlowLayout(FlowLayout.LEFT, 10, 0));
         languagePanel.setBackground(BACKGROUND_SECONDARY);
 
-        // Populate language options
-        LanguageItem[] languages = {
-            new LanguageItem("auto", "Auto Detect"),
-            new LanguageItem("en", "English"),
-            new LanguageItem("bn", "Bengali"),
-            new LanguageItem("hi", "Hindi"),
-            new LanguageItem("ja", "Japanese"),
-            new LanguageItem("zh-CN", "Chinese (Simplified)"),
-            new LanguageItem("zh-TW", "Chinese (Traditional)"),
-            new LanguageItem("ko", "Korean"),
-            new LanguageItem("ar", "Arabic"),
-            new LanguageItem("es", "Spanish"),
-            new LanguageItem("fr", "French"),
-            new LanguageItem("de", "German"),
-            new LanguageItem("it", "Italian"),
-            new LanguageItem("pt", "Portuguese"),
-            new LanguageItem("ru", "Russian"),
-            new LanguageItem("tr", "Turkish"),
-            new LanguageItem("vi", "Vietnamese"),
-            new LanguageItem("th", "Thai")
-        };
+        // Load languages from JSON file
+        LanguageItem[] languages = loadLanguagesFromJson();
 
         sourceLanguageCombo = createStyledComboBox(languages);
-        sourceLanguageCombo.setSelectedIndex(1); // Default to English
+        sourceLanguageCombo.setSelectedIndex(0); // Default to Auto Detect
 
         JLabel arrowLabel = new JLabel("→");
         arrowLabel.setForeground(TEXT_SECONDARY);
         arrowLabel.setFont(new Font("Dialog", Font.BOLD, 16));
 
+        // Find Bengali index (should be at index 9 in full list, but search to be safe)
+        int bengaliIndex = 0;
+        for (int i = 0; i < languages.length; i++) {
+            if ("bn".equals(languages[i].code)) {
+                bengaliIndex = i;
+                break;
+            }
+        }
+
         targetLanguageCombo = createStyledComboBox(languages);
-        targetLanguageCombo.setSelectedIndex(2); // Default to Bengali
+        targetLanguageCombo.setSelectedIndex(bengaliIndex); // Default to Bengali
 
         // Language selection listeners
         sourceLanguageCombo.addActionListener(e -> {
@@ -138,7 +192,7 @@ public class Window {
         });
 
         // Initialize default languages
-        Tools.getConfig().setSourceLanguage("en");
+        Tools.getConfig().setSourceLanguage("auto");
         Tools.getConfig().setTargetLanguage("bn");
 
         languagePanel.add(sourceLanguageCombo);
@@ -282,8 +336,10 @@ public class Window {
         textArea.setCaretColor(TEXT_PRIMARY);
         textArea.setSelectionColor(SELECTION_BG);
         textArea.setSelectedTextColor(TEXT_PRIMARY);
-        textArea.setLineWrap(true);
-        textArea.setWrapStyleWord(true);
+        // Preserve formatting: disable word wrap to keep tabs and line breaks intact
+        textArea.setLineWrap(false);
+        textArea.setWrapStyleWord(false);
+        textArea.setTabSize(4);  // Set consistent tab size
         textArea.setMargin(new Insets(12, 12, 12, 12));
         textArea.setBorder(BorderFactory.createEmptyBorder());
 

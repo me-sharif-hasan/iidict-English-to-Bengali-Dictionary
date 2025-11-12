@@ -15,6 +15,10 @@ public class GoogleTranslateClient {
     private static GoogleTranslateClient instance = new GoogleTranslateClient();
     private static final Map<String, Map<String, String>> cache = new HashMap<>();
 
+    // Use rare Unicode characters as placeholders that won't be translated
+    private static final String NEWLINE_PLACEHOLDER = "<br>";  // Line Separator (rarely used)
+    private static final String TAB_PLACEHOLDER = "<tr>";      // Paragraph Separator (rarely used)
+
     private final HttpClient client = HttpClient.newHttpClient();
     private String token;
 
@@ -22,6 +26,24 @@ public class GoogleTranslateClient {
 
     public static GoogleTranslateClient getInstance() {
         return instance;
+    }
+
+    /**
+     * Encode formatting characters before translation to preserve them
+     */
+    private String encodeFormatting(String text) {
+        if (text == null) return null;
+        return text.replace("\n", NEWLINE_PLACEHOLDER)
+                   .replace("\t", TAB_PLACEHOLDER);
+    }
+
+    /**
+     * Decode formatting characters after translation to restore them
+     */
+    private String decodeFormatting(String text) {
+        if (text == null) return null;
+        return text.replace(NEWLINE_PLACEHOLDER, "\n")
+                   .replace(TAB_PLACEHOLDER, "\t");
     }
 
     public String getTokenJs() throws IOException, InterruptedException {
@@ -46,11 +68,18 @@ public class GoogleTranslateClient {
             List<String> wordList2 = new ArrayList<>();
             Map<Integer, Integer> idxs = new HashMap<>();
             int pos = 0;
-            for (int i = 0; i < wordList.size(); i++) {
+
+            // Encode formatting in input texts
+            List<String> encodedWordList = new ArrayList<>();
+            for (String word : wordList) {
+                encodedWordList.add(encodeFormatting(word));
+            }
+
+            for (int i = 0; i < encodedWordList.size(); i++) {
                 Map<String, String> langCache = cache.get(tl);
-                if (langCache == null || !langCache.containsKey(wordList.get(i))) {
+                if (langCache == null || !langCache.containsKey(encodedWordList.get(i))) {
                     idxs.put(i, pos++);
-                    wordList2.add(wordList.get(i));
+                    wordList2.add(encodedWordList.get(i));
                 }
             }
 
@@ -64,21 +93,24 @@ public class GoogleTranslateClient {
                 HttpResponse<String> res = client.send(req, HttpResponse.BodyHandlers.ofString());
                 JsonArray json = JsonParser.parseString(res.body()).getAsJsonArray();
                 JsonArray arr = json.get(0).getAsJsonArray();
-                for (int i = 0; i < arr.size(); i++) data.add(arr.get(i).getAsString());
+                for (int i = 0; i < arr.size(); i++) {
+                    // Decode formatting in output
+                    data.add(decodeFormatting(arr.get(i).getAsString()));
+                }
             }
 
             if (!data.isEmpty() || !cache.isEmpty()) {
                 List<String> finalData = new ArrayList<>();
                 List<String> output = data;
-                for (int i = 0; i < wordList.size(); i++) {
+                for (int i = 0; i < encodedWordList.size(); i++) {
                     Integer idx = idxs.get(i);
                     if (idx != null && idx < output.size()) {
                         cache.computeIfAbsent(tl, k -> new HashMap<>());
                         String translated = output.get(idx);
-                        cache.get(tl).put(wordList.get(i), translated);
+                        cache.get(tl).put(encodedWordList.get(i), translated);
                         finalData.add(translated);
                     } else {
-                        finalData.add(cache.get(tl).get(wordList.get(i)));
+                        finalData.add(cache.get(tl).get(encodedWordList.get(i)));
                     }
                 }
                 return finalData;

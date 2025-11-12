@@ -2,7 +2,7 @@
 <project version="4">
   <component name="ProjectModuleManager">
     <modules>
-      <module fileurl="file://$PROJECT_DIR$/iidict.iml" filepath="$PROJECT_DIR$/iidict.iml" />
+      <module fileurl="file://$PROJECT_DIR$/translator.iml" filepath="$PROJECT_DIR$/translator.iml" />
     </modules>
   </component>
 </project>

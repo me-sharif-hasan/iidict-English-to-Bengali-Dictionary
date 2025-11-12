@@ -5,35 +5,17 @@ import java.util.*;
 
 public class Tools {
     private static Tools tools=null;
-    private List<String> list=new ArrayList<String>();
-    private HashMap<String, String> hashMap=new HashMap<String,String>();
-    private List<Event> events=new ArrayList<Event>();
+    private final List<String> list=new ArrayList<>();
+    private final List<Event> events=new ArrayList<>();
     String latest_translation="";
     String latest_source="";  // Store source text separately
 
     // Language settings
-    private String sourceLanguage = "en";
+    private String sourceLanguage = "auto";
     private String targetLanguage = "bn";
 
-    static boolean loading=false;
-
     Tools(){
-        if(loading) return;
-        loading=true;
-        System.out.println("Loading......");
-
-        InputStream getDict=getDict=getRes("/db.csv");
-        Scanner scanner=new Scanner(getDict);
-        while (scanner.hasNextLine()){
-            String ln=scanner.nextLine();
-            String []lw=ln.split("\\|");
-            if(lw.length<2){
-                continue;
-            }
-            hashMap.put(lw[0],lw[1]);
-        }
-        System.out.println("Loading has successfully completed!");
-        loading=false;
+        System.out.println("Translator initialized with Google Translate API");
     }
 
     public void setSourceLanguage(String lang) {
@@ -53,24 +35,35 @@ public class Tools {
     }
 
     public InputStream getRes(String file){
-        return Tools.class.getResourceAsStream(file);
+        // Remove leading slash if present
+        String resourcePath = file.startsWith("/") ? file.substring(1) : file;
+        // Try with res/ prefix
+        InputStream is = Tools.class.getClassLoader().getResourceAsStream("res/" + resourcePath);
+        if (is == null) {
+            // Try without res/ prefix
+            is = Tools.class.getClassLoader().getResourceAsStream(resourcePath);
+        }
+        if (is == null) {
+            // Try with leading slash (original method)
+            is = Tools.class.getResourceAsStream(file);
+        }
+        return is;
     }
 
     String meaning(String upword){
-        List<String> theSentence=new ArrayList<String>();
+        List<String> theSentence=new ArrayList<>();
         theSentence.add(upword);
         try{
-            // Use the selected languages instead of hardcoded ones
+            // Use Google Translate with the selected languages
             List<String> translations=GoogleTranslateClient.getInstance().translateList(theSentence, sourceLanguage, targetLanguage);
             if(translations.isEmpty()){
                 return "Translation not available!";
             }
-            return translations.get(0);
+            // Decode HTML entities in the translation result
+            return decodeHtmlEntities(translations.get(0));
         }catch(Exception e){
             return "Translation error: " + e.getMessage();
         }
-//        upword=upword.toUpperCase(Locale.ROOT);
-//        return hashMap.getOrDefault(upword, "ডেটাবেসে নেই!");
     }
 
     public void callEvent(String type){
@@ -79,9 +72,10 @@ public class Tools {
             latest_source="";
             String word= list.get(list.size() - 1);
             word=word.trim();
-            latest_source = word;  // Store source separately
-            latest_translation = meaning(word);  // Store translation only
-            if(latest_translation.equals("")) return;
+            // Decode HTML entities in source text
+            latest_source = decodeHtmlEntities(word);  // Store source separately
+            latest_translation = meaning(word);  // Store translation only (already decoded in meaning())
+            if(latest_translation.isEmpty()) return;
             for(Event evt:events){
                 evt.event();
             }
@@ -107,34 +101,8 @@ public class Tools {
         }
     }
 
-
     public void addEvent(Event evt){
         events.add(evt);
-    }
-
-    private String clean(String word){
-        String s="";
-        String u_word=word.toUpperCase(Locale.ROOT);
-
-        int i=0,j=u_word.length()-1;
-        int dist=j-i;
-        while (i<=j){
-            if(!(u_word.charAt(i)>='A'&&u_word.charAt(i)<='Z')){
-                i++;
-            }
-            if(!(u_word.charAt(j)>='A'&&u_word.charAt(j)<='Z')){
-                j--;
-            }
-            if(dist==j-i){
-                break;
-            }
-            dist=j-i;
-        }
-        while (i<=j){
-            s=s+word.charAt(i);
-            i++;
-        }
-        return s;
     }
 
     public static Tools getConfig(){
@@ -142,5 +110,49 @@ public class Tools {
             tools=new Tools();
         }
         return tools;
+    }
+
+    // Decode HTML entities to proper characters
+    public static String decodeHtmlEntities(String text) {
+        if (text == null || text.isEmpty()) {
+            return text;
+        }
+
+        // Decode common HTML entities
+        text = text.replace("&quot;", "\"");
+        text = text.replace("&apos;", "'");
+        text = text.replace("&lt;", "<");
+        text = text.replace("&gt;", ">");
+        text = text.replace("&amp;", "&");  // Must be last to avoid double-decoding
+        text = text.replace("&#39;", "'");
+        text = text.replace("&#34;", "\"");
+        text = text.replace("&nbsp;", " ");
+
+        // Decode numeric character references (e.g., &#8220; &#8221;)
+        while (text.contains("&#")) {
+            int start = text.indexOf("&#");
+            int end = text.indexOf(";", start);
+            if (end > start) {
+                try {
+                    String numStr = text.substring(start + 2, end);
+                    int charCode;
+                    if (numStr.startsWith("x") || numStr.startsWith("X")) {
+                        // Hexadecimal
+                        charCode = Integer.parseInt(numStr.substring(1), 16);
+                    } else {
+                        // Decimal
+                        charCode = Integer.parseInt(numStr);
+                    }
+                    char decodedChar = (char) charCode;
+                    text = text.substring(0, start) + decodedChar + text.substring(end + 1);
+                } catch (NumberFormatException e) {
+                    break; // Invalid format, stop trying
+                }
+            } else {
+                break;
+            }
+        }
+
+        return text;
     }
 }
