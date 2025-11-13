@@ -72,7 +72,7 @@ jobs:
           $modulePath = ".\jdk-21\jmods;.\javafx-jmods-21.0.3"
           .\jdk-21\bin\jlink.exe `
             --module-path $modulePath `
-            --add-modules java.base,java.desktop,java.logging,java.xml,java.naming,java.sql,java.management,java.instrument,java.prefs,jdk.unsupported,javafx.controls,javafx.fxml,javafx.graphics,javafx.media,javafx.base `
+            --add-modules java.base,java.desktop,java.logging,java.xml,java.naming,java.sql,java.management,java.instrument,java.prefs,java.net.http,jdk.crypto.ec,jdk.unsupported,javafx.controls,javafx.fxml,javafx.graphics,javafx.media,javafx.base `
             --output runtime `
             --compress=2 `
             --no-header-files `
@@ -148,7 +148,7 @@ jobs:
           rm -rf runtime || true
           ./jdk-21/bin/jlink \
             --module-path ./jdk-21/jmods:./javafx-jmods-21.0.3 \
-            --add-modules java.base,java.desktop,java.logging,java.xml,java.naming,java.sql,java.management,java.instrument,java.prefs,jdk.unsupported,javafx.controls,javafx.fxml,javafx.graphics,javafx.media,javafx.base \
+            --add-modules java.base,java.desktop,java.logging,java.xml,java.naming,java.sql,java.management,java.instrument,java.prefs,java.net.http,jdk.crypto.ec,jdk.unsupported,javafx.controls,javafx.fxml,javafx.graphics,javafx.media,javafx.base \
             --output runtime \
             --compress=2 \
             --no-header-files \

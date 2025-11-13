@@ -9,25 +9,7 @@
     <option name="autoReloadType" value="SELECTIVE" />
   </component>
   <component name="ChangeListManager">
-    <list default="true" id="86eb6581-cdfb-4fc1-8953-89222f94b8d2" name="Changes" comment="ci: fix icon issue in windows build">
-      <change beforePath="$PROJECT_DIR$/.github/workflows/release.yml" beforeDir="false" afterPath="$PROJECT_DIR$/.github/workflows/release.yml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/BUTTON_UPDATES.md" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/CICD_DOCUMENTATION.md" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/CICD_QUICKSTART.md" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/CICD_SETUP_SUMMARY.md" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/FONT_INSTALLATION_GUIDE.md" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/ICON_FIX.md" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/IMPROVEMENTS.md" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/JAVA21_MIGRATION.md" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/JAVAFX_MIGRATION_COMPLETE.md" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/JAVAFX_MIGRATION_PLAN.md" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/OS_FONT_RENDERING_COMPLETE.md" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/QUICKSTART.md" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/REDESIGN_SUMMARY.md" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/SPINNER_FEATURE.md" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/pom.xml" beforeDir="false" afterPath="$PROJECT_DIR$/pom.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/readme.md" beforeDir="false" />
-    </list>
+    <list default="true" id="86eb6581-cdfb-4fc1-8953-89222f94b8d2" name="Changes" comment="ui: javafx ui issue - white page in some windows machine" />
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
     <option name="HIGHLIGHT_NON_ACTIVE_CHANGELIST" value="false" />
@@ -147,7 +129,7 @@
       <workItem from="1762877303850" duration="7399000" />
       <workItem from="1762960414826" duration="4591000" />
       <workItem from="1763010247709" duration="1227000" />
-      <workItem from="1763012084435" duration="5381000" />
+      <workItem from="1763012084435" duration="5836000" />
     </task>
     <task id="LOCAL-00001" summary="Windows fix">
       <option name="closed" value="true" />
@@ -197,7 +179,15 @@
       <option name="project" value="LOCAL" />
       <updated>1763017630696</updated>
     </task>
-    <option name="localTasksCounter" value="7" />
+    <task id="LOCAL-00007" summary="ui: javafx ui issue - white page in some windows machine">
+      <option name="closed" value="true" />
+      <created>1763018342292</created>
+      <option name="number" value="00007" />
+      <option name="presentableId" value="LOCAL-00007" />
+      <option name="project" value="LOCAL" />
+      <updated>1763018342292</updated>
+    </task>
+    <option name="localTasksCounter" value="8" />
     <servers />
   </component>
   <component name="TypeScriptGeneratedFilesManager">
@@ -222,7 +212,8 @@
     <MESSAGE value="Code refactoring" />
     <MESSAGE value="Ci release" />
     <MESSAGE value="ci: fix icon issue in windows build" />
-    <option name="LAST_COMMIT_MESSAGE" value="ci: fix icon issue in windows build" />
+    <MESSAGE value="ui: javafx ui issue - white page in some windows machine" />
+    <option name="LAST_COMMIT_MESSAGE" value="ui: javafx ui issue - white page in some windows machine" />
   </component>
   <component name="XDebuggerManager">
     <breakpoint-manager>
