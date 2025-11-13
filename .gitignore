@@ -1,2 +1,11 @@
 target
 out
+*.exe
+*.deb
+*.dmg
+*.msi
+jdk-*
+package-input/
+installer-output/
+artifacts/
+release-notes.md
