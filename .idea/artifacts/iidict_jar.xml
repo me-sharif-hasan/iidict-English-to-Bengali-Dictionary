@@ -1,8 +1,0 @@
-<component name="ArtifactManager">
-  <artifact type="jar" name="iidict:jar">
-    <output-path>$PROJECT_DIR$/out/artifacts/iidict_jar</output-path>
-    <root id="archive" name="iidict.jar">
-      <element id="module-output" name="iidict" />
-    </root>
-  </artifact>
-</component>

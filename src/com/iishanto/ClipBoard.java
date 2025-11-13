@@ -1,6 +1,5 @@
 package com.iishanto;
 
-import javafx.application.Platform;
 import java.awt.*;
 import java.awt.datatransfer.DataFlavor;
 import java.util.concurrent.TimeUnit;
@@ -29,7 +28,7 @@ public class ClipBoard {
         while (running){
             try {
                 String text=getClipBoard();
-                if(text.equals(previous)||text.equals("")) {
+                if(text.equals(previous)|| text.isEmpty()) {
                     first_cpy=false;
                 } else if(first_cpy){
                     first_cpy=false;
