@@ -338,7 +338,7 @@ public class WindowFX extends Application {
 
     private void loadIcon() {
         try {
-            InputStream iconStream = Tools.getConfig().getRes("/icon.png");
+            InputStream iconStream = Tools.getConfig().getRes("/logo.png");
             if (iconStream != null) {
                 Image icon = new Image(iconStream);
                 primaryStage.getIcons().add(icon);

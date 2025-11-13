@@ -29,31 +29,20 @@ public class ClipBoard {
         while (running){
             try {
                 String text=getClipBoard();
-                if(text.equals(previous)|| text.isEmpty()) {
+                if(text.equals(previous)||text.equals("")) {
                     first_cpy=false;
-                    continue;
-                }
-                if(first_cpy){
+                } else if(first_cpy){
                     first_cpy=false;
                     previous=text;
-                    continue;
-                }
-                Tools.getConfig().regNewText(text);
-                // Use Platform.runLater() to update JavaFX UI on the JavaFX Application Thread
-                if (Platform.isFxApplicationThread()) {
-                    Tools.getConfig().callEvent("new_text");
                 } else {
-                    Platform.runLater(() -> Tools.getConfig().callEvent("new_text"));
+                    Tools.getConfig().regNewText(text);
+                    Tools.getConfig().callEvent("new_text");
+                    previous=text;
                 }
-                previous=text;
-                TimeUnit.MILLISECONDS.sleep(500);
+                // Sleep 200ms between clipboard checks to avoid locking the clipboard
+                TimeUnit.MILLISECONDS.sleep(200);
             } catch (InterruptedException e) {
-                // Thread interrupted, exit gracefully
-                Thread.currentThread().interrupt();
-                break;
-            } catch (Exception e) {
-                // Log other exceptions but continue running
-                System.err.println("Clipboard monitor error: " + e.getMessage());
+                System.out.println("Clipboard monitoring interrupted");
             }
         }
         System.out.println("Clipboard monitoring stopped");
