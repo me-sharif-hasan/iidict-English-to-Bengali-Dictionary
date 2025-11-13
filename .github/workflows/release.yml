@@ -59,11 +59,25 @@ jobs:
           $jdkDir = Get-ChildItem -Directory | Where-Object { $_.Name -like "jdk-*" } | Select-Object -First 1
           Rename-Item $jdkDir.Name "jdk-21"
 
-      - name: Create runtime image
+      - name: Download JavaFX jmods
+        shell: pwsh
+        run: |
+          Invoke-WebRequest -Uri "https://download2.gluonhq.com/openjfx/21.0.3/openjfx-21.0.3_windows-x64_bin-jmods.zip" -OutFile "javafx-jmods.zip"
+          Expand-Archive -Path "javafx-jmods.zip" -DestinationPath "."
+
+      - name: Create runtime image with JavaFX
         shell: pwsh
         run: |
           if (Test-Path runtime) { Remove-Item runtime -Recurse -Force }
-          .\jdk-21\bin\jlink.exe --module-path .\jdk-21\jmods --add-modules java.base,java.desktop --output runtime --compress=2 --no-header-files --no-man-pages
+          $modulePath = ".\jdk-21\jmods;.\javafx-jmods-21.0.3"
+          .\jdk-21\bin\jlink.exe `
+            --module-path $modulePath `
+            --add-modules java.base,java.desktop,java.logging,java.xml,java.naming,java.sql,java.management,java.instrument,java.prefs,jdk.unsupported,javafx.controls,javafx.fxml,javafx.graphics,javafx.media,javafx.base `
+            --output runtime `
+            --compress=2 `
+            --no-header-files `
+            --no-man-pages `
+            --strip-debug
 
       - name: Install WiX Toolset
         shell: pwsh
@@ -124,10 +138,22 @@ jobs:
           JDK_DIR=$(ls -d jdk-* | head -n 1)
           mv "$JDK_DIR" jdk-21
 
-      - name: Create runtime image
+      - name: Download JavaFX jmods
+        run: |
+          wget -q "https://download2.gluonhq.com/openjfx/21.0.3/openjfx-21.0.3_linux-x64_bin-jmods.zip" -O javafx-jmods.zip
+          unzip -q javafx-jmods.zip
+
+      - name: Create runtime image with JavaFX
         run: |
           rm -rf runtime || true
-          ./jdk-21/bin/jlink --module-path ./jdk-21/jmods --add-modules java.base,java.desktop --output runtime --compress=2 --no-header-files --no-man-pages
+          ./jdk-21/bin/jlink \
+            --module-path ./jdk-21/jmods:./javafx-jmods-21.0.3 \
+            --add-modules java.base,java.desktop,java.logging,java.xml,java.naming,java.sql,java.management,java.instrument,java.prefs,jdk.unsupported,javafx.controls,javafx.fxml,javafx.graphics,javafx.media,javafx.base \
+            --output runtime \
+            --compress=2 \
+            --no-header-files \
+            --no-man-pages \
+            --strip-debug
 
       - name: Install required packages
         run: sudo apt-get update && sudo apt-get install -y fakeroot binutils
