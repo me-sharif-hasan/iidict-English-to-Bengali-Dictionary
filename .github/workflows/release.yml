@@ -133,7 +133,8 @@ jobs:
           wget -q "https://download.oracle.com/java/21/latest/jdk-21_linux-x64_bin.tar.gz" -O jdk-linux.tar.gz
           echo "Extracting JRE..."
           tar -xzf jdk-linux.tar.gz
-          mv jdk-* jdk-21
+          extracted_dir=$(tar -tzf jdk-linux.tar.gz | head -1 | cut -f1 -d"/")
+          mv "$extracted_dir" jdk-21
 
       - name: Install required packages
         run: |
