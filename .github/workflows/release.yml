@@ -84,7 +84,7 @@ jobs:
             --runtime-image runtime `
             --app-version "${{ needs.prepare.outputs.version }}" `
             --vendor "JS Enterprise" `
-            --icon "src\res\logo.png" `
+            --icon "src\res\logo.ico" `
             --win-menu `
             --win-shortcut `
             --dest installer-output

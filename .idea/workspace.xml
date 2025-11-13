@@ -9,11 +9,46 @@
     <option name="autoReloadType" value="SELECTIVE" />
   </component>
   <component name="ChangeListManager">
-    <list default="true" id="86eb6581-cdfb-4fc1-8953-89222f94b8d2" name="Changes" comment="Code refactoring">
-      <change beforePath="$PROJECT_DIR$/.gitignore" beforeDir="false" afterPath="$PROJECT_DIR$/.gitignore" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/dependency-reduced-pom.xml" beforeDir="false" afterPath="$PROJECT_DIR$/dependency-reduced-pom.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/pom.xml" beforeDir="false" afterPath="$PROJECT_DIR$/pom.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/readme.md" beforeDir="false" afterPath="$PROJECT_DIR$/readme.md" afterDir="false" />
+    <list default="true" id="86eb6581-cdfb-4fc1-8953-89222f94b8d2" name="Changes" comment="Fix lock issue and updated icon">
+      <change afterPath="$PROJECT_DIR$/.gitignore" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/.idea/compiler.xml" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/.idea/copilot.data.migration.agent.xml" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/.idea/copilot.data.migration.ask.xml" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/.idea/copilot.data.migration.ask2agent.xml" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/.idea/copilot.data.migration.edit.xml" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/.idea/inspectionProfiles/Project_Default.xml" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/.idea/jarRepositories.xml" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/.idea/libraries/libs.xml" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/BUTTON_UPDATES.md" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/FONT_INSTALLATION_GUIDE.md" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/IMPROVEMENTS.md" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/JAVAFX_MIGRATION_COMPLETE.md" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/JAVAFX_MIGRATION_PLAN.md" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/OS_FONT_RENDERING_COMPLETE.md" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/QUICKSTART.md" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/REDESIGN_SUMMARY.md" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/SPINNER_FEATURE.md" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/dependency-reduced-pom.xml" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/pom.xml" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/run.sh" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/src/com/iishanto/AudioPlayer.java" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/src/com/iishanto/FontTest.java" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/src/com/iishanto/GoogleTranslateClient.java" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/src/com/iishanto/WindowFX.java" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/src/res/dark-theme.css" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/src/res/languages.json" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/src/res/logo.png" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/translator.iml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/.idea/encodings.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/encodings.xml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/.idea/misc.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/misc.xml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/.idea/modules.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/modules.xml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/iidict.iml" beforeDir="false" afterPath="$PROJECT_DIR$/iidict.iml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/out/artifacts/iidict_jar/iidict.jar" beforeDir="false" afterPath="$PROJECT_DIR$/out/artifacts/iidict_jar/iidict.jar" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/META-INF/MANIFEST.MF" beforeDir="false" afterPath="$PROJECT_DIR$/src/META-INF/MANIFEST.MF" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/com/iishanto/ClipBoard.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/com/iishanto/ClipBoard.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/com/iishanto/Event.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/com/iishanto/Event.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/com/iishanto/Main.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/com/iishanto/Main.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/com/iishanto/Tools.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/com/iishanto/Tools.java" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
@@ -46,31 +81,32 @@
     <option name="hideEmptyMiddlePackages" value="true" />
     <option name="showLibraryContents" value="true" />
   </component>
-  <component name="PropertiesComponent"><![CDATA[{
-  "keyToString": {
-    "Application.Main.executor": "Run",
-    "Maven.translator [clean].executor": "Run",
-    "Maven.translator [install].executor": "Run",
-    "ModuleVcsDetector.initialDetectionPerformed": "true",
-    "RunOnceActivity.ShowReadmeOnStart": "true",
-    "RunOnceActivity.TerminalTabsStorage.copyFrom.TerminalArrangementManager.252": "true",
-    "RunOnceActivity.git.unshallow": "true",
-    "SHARE_PROJECT_CONFIGURATION_FILES": "true",
-    "git-widget-placeholder": "master",
-    "ignore.virus.scanning.warn.message": "true",
-    "kotlin-language-version-configured": "true",
-    "last_opened_file_path": "C:/Users/HP/IdeaProjects/iidict-English-to-Bengali-Dictionary-master",
-    "node.js.detected.package.eslint": "true",
-    "node.js.detected.package.tslint": "true",
-    "node.js.selected.package.eslint": "(autodetect)",
-    "node.js.selected.package.tslint": "(autodetect)",
-    "nodejs_package_manager_path": "npm",
-    "project.structure.last.edited": "Artifacts",
-    "project.structure.proportion": "0.0",
-    "project.structure.side.proportion": "0.2",
-    "vue.rearranger.settings.migration": "true"
+  <component name="PropertiesComponent">{
+  &quot;keyToString&quot;: {
+    &quot;Application.Main.executor&quot;: &quot;Run&quot;,
+    &quot;Maven.translator [clean].executor&quot;: &quot;Run&quot;,
+    &quot;Maven.translator [install].executor&quot;: &quot;Run&quot;,
+    &quot;RunOnceActivity.ShowReadmeOnStart&quot;: &quot;true&quot;,
+    &quot;RunOnceActivity.TerminalTabsStorage.copyFrom.TerminalArrangementManager.252&quot;: &quot;true&quot;,
+    &quot;RunOnceActivity.git.unshallow&quot;: &quot;true&quot;,
+    &quot;SHARE_PROJECT_CONFIGURATION_FILES&quot;: &quot;true&quot;,
+    &quot;ignore.virus.scanning.warn.message&quot;: &quot;true&quot;,
+    &quot;kotlin-language-version-configured&quot;: &quot;true&quot;,
+    &quot;last_opened_file_path&quot;: &quot;C:/Users/HP/IdeaProjects/iidict-English-to-Bengali-Dictionary-master&quot;,
+    &quot;node.js.detected.package.eslint&quot;: &quot;true&quot;,
+    &quot;node.js.detected.package.tslint&quot;: &quot;true&quot;,
+    &quot;node.js.selected.package.eslint&quot;: &quot;(autodetect)&quot;,
+    &quot;node.js.selected.package.tslint&quot;: &quot;(autodetect)&quot;,
+    &quot;nodejs_package_manager_path&quot;: &quot;npm&quot;,
+    &quot;project.structure.last.edited&quot;: &quot;Artifacts&quot;,
+    &quot;project.structure.proportion&quot;: &quot;0.0&quot;,
+    &quot;project.structure.side.proportion&quot;: &quot;0.2&quot;,
+    &quot;vue.rearranger.settings.migration&quot;: &quot;true&quot;
   }
-}]]></component>
+}</component>
+  <component name="QodanaGithubNotificationPromoProjectDismissalState">
+    <option name="dismissed" value="true" />
+  </component>
   <component name="RecentsManager">
     <key name="CopyFile.RECENT_KEYS">
       <recent name="$PROJECT_DIR$/src/res" />
@@ -133,7 +169,6 @@
       <workItem from="1762877303850" duration="7399000" />
       <workItem from="1762960414826" duration="4591000" />
       <workItem from="1763010247709" duration="1227000" />
-      <workItem from="1763012084435" duration="854000" />
     </task>
     <task id="LOCAL-00001" summary="Windows fix">
       <option name="closed" value="true" />
@@ -159,45 +194,25 @@
       <option name="project" value="LOCAL" />
       <updated>1763011584696</updated>
     </task>
-    <task id="LOCAL-00004" summary="Code refactoring">
-      <option name="closed" value="true" />
-      <created>1763012222634</created>
-      <option name="number" value="00004" />
-      <option name="presentableId" value="LOCAL-00004" />
-      <option name="project" value="LOCAL" />
-      <updated>1763012222634</updated>
-    </task>
-    <option name="localTasksCounter" value="5" />
+    <option name="localTasksCounter" value="4" />
     <servers />
   </component>
   <component name="TypeScriptGeneratedFilesManager">
     <option name="version" value="3" />
-  </component>
-  <component name="Vcs.Log.Tabs.Properties">
-    <option name="TAB_STATES">
-      <map>
-        <entry key="MAIN">
-          <value>
-            <State />
-          </value>
-        </entry>
-      </map>
-    </option>
   </component>
   <component name="VcsManagerConfiguration">
     <MESSAGE value="Windows fix" />
     <MESSAGE value="Added TTS support" />
     <MESSAGE value="Fix clipboard lock issue" />
     <MESSAGE value="Fix lock issue and updated icon" />
-    <MESSAGE value="Code refactoring" />
-    <option name="LAST_COMMIT_MESSAGE" value="Code refactoring" />
+    <option name="LAST_COMMIT_MESSAGE" value="Fix lock issue and updated icon" />
   </component>
   <component name="XDebuggerManager">
     <breakpoint-manager>
       <breakpoints>
         <line-breakpoint enabled="true" type="java-line">
           <url>file://$PROJECT_DIR$/src/com/iishanto/ClipBoard.java</url>
-          <line>48</line>
+          <line>49</line>
           <option name="timeStamp" value="11" />
         </line-breakpoint>
       </breakpoints>
