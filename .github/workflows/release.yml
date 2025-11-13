@@ -21,15 +21,9 @@ jobs:
       - name: Calculate version
         id: version
         run: |
-          # Get the count of commits as build number
           BUILD_NUMBER=$(git rev-list --count HEAD)
-          
-          # Extract base version from pom.xml
           BASE_VERSION=$(grep -oPm1 "(?<=<version>)[^<]+" pom.xml | head -1)
-          
-          # Create semantic version: base.buildnumber
           VERSION="${BASE_VERSION}.${BUILD_NUMBER}"
-          
           echo "version=${VERSION}" >> $GITHUB_OUTPUT
           echo "build_number=${BUILD_NUMBER}" >> $GITHUB_OUTPUT
           echo "Generated version: ${VERSION}"
@@ -44,9 +38,9 @@ jobs:
       - name: Set up JDK 21 for building
         uses: actions/setup-java@v4
         with:
-          distribution: 'temurin'
-          java-version: '21'
-          cache: 'maven'
+          distribution: temurin
+          java-version: 21
+          cache: maven
 
       - name: Update version in pom.xml
         shell: pwsh
@@ -64,15 +58,12 @@ jobs:
           Invoke-WebRequest -Uri "https://download.oracle.com/java/21/latest/jdk-21_windows-x64_bin.zip" -OutFile "jdk-windows.zip"
           Write-Host "Extracting JRE..."
           Expand-Archive -Path "jdk-windows.zip" -DestinationPath "." -Force
-          
-          # Find the extracted JDK directory
           $jdkDir = Get-ChildItem -Directory -Filter "jdk-*" | Select-Object -First 1
           Rename-Item $jdkDir.Name "jdk-21"
 
-      - name: Download and setup jpackage tools
+      - name: Install WiX Toolset
         shell: pwsh
         run: |
-          # Install WiX Toolset for Windows installers
           choco install wixtoolset -y
           refreshenv
 
@@ -80,13 +71,9 @@ jobs:
         shell: pwsh
         run: |
           $version = "${{ needs.prepare.outputs.version }}"
-          $APP_VERSION = $version
-          
-          # Create input directory with JAR and resources
           New-Item -ItemType Directory -Force -Path "package-input"
           Copy-Item "target\translator-$version.jar" "package-input\translator.jar"
-          
-          # Use jpackage from downloaded JDK
+
           & "jdk-21\bin\jpackage.exe" `
             --type exe `
             --input package-input `
@@ -94,7 +81,7 @@ jobs:
             --main-jar translator.jar `
             --main-class com.iishanto.Main `
             --runtime-image jdk-21 `
-            --app-version $APP_VERSION `
+            --app-version $version `
             --vendor "IIShanto" `
             --description "English to Bengali Dictionary" `
             --icon "src\res\icon.png" `
@@ -102,8 +89,6 @@ jobs:
             --win-shortcut `
             --win-dir-chooser `
             --dest installer-output
-          
-          Write-Host "Installer created successfully"
 
       - name: Rename installer
         shell: pwsh
@@ -112,7 +97,6 @@ jobs:
           $installer = Get-ChildItem installer-output\*.exe | Select-Object -First 1
           $newName = "IIDict-$version-windows-x64.exe"
           Rename-Item $installer.FullName $newName
-          Write-Host "Renamed to: $newName"
 
       - name: Upload Windows Artifact
         uses: actions/upload-artifact@v4
@@ -131,9 +115,9 @@ jobs:
       - name: Set up JDK 21 for building
         uses: actions/setup-java@v4
         with:
-          distribution: 'temurin'
-          java-version: '21'
-          cache: 'maven'
+          distribution: temurin
+          java-version: 21
+          cache: maven
 
       - name: Update version in pom.xml
         run: |
@@ -151,7 +135,7 @@ jobs:
           tar -xzf jdk-linux.tar.gz
           mv jdk-* jdk-21
 
-      - name: Install required packages for jpackage
+      - name: Install required packages
         run: |
           sudo apt-get update
           sudo apt-get install -y fakeroot binutils
@@ -159,12 +143,9 @@ jobs:
       - name: Create Debian Package with jpackage
         run: |
           VERSION="${{ needs.prepare.outputs.version }}"
-          
-          # Create input directory with JAR and resources
           mkdir -p package-input
           cp "target/translator-${VERSION}.jar" "package-input/translator.jar"
-          
-          # Use jpackage from downloaded JDK
+
           ./jdk-21/bin/jpackage \
             --type deb \
             --input package-input \
@@ -179,8 +160,6 @@ jobs:
             --linux-menu-group "Education" \
             --linux-shortcut \
             --dest installer-output
-          
-          echo "Debian package created successfully"
 
       - name: Rename Debian package
         run: |
@@ -189,7 +168,6 @@ jobs:
           DEB_FILE=$(ls *.deb | head -1)
           NEW_NAME="iidict-${VERSION}-linux-x64.deb"
           mv "$DEB_FILE" "$NEW_NAME"
-          echo "Renamed to: $NEW_NAME"
 
       - name: Upload Linux Artifact
         uses: actions/upload-artifact@v4
@@ -223,62 +201,54 @@ jobs:
         run: |
           VERSION="${{ needs.prepare.outputs.version }}"
           BUILD_NUMBER="${{ needs.prepare.outputs.build_number }}"
-          
           cat > release-notes.md << EOF
           # IIDict v${VERSION}
-          
+
           ## 📦 Release Information
           - **Version**: ${VERSION}
           - **Build Number**: ${BUILD_NUMBER}
           - **Release Date**: $(date +%Y-%m-%d)
           - **Commit**: ${GITHUB_SHA:0:7}
-          
+
           ## 🎯 What's Included
-          
-          This release includes standalone installers for both Windows and Linux with **bundled JRE 21.0.9**. 
+
+          This release includes standalone installers for both Windows and Linux with **bundled JRE 21.0.9**.
           No need to install Java separately!
-          
+
           ### Windows (x64)
           - **File**: \`IIDict-${VERSION}-windows-x64.exe\`
           - **JRE**: Bundled Oracle JRE 21.0.9
-          - **Installation**: Double-click the .exe file and follow the installer
-          - **Features**: Creates Start Menu entry and Desktop shortcut
-          
+          - **Installation**: Double-click and follow installer
+          - **Features**: Creates Start Menu and Desktop shortcut
+
           ### Linux (x64)
           - **File**: \`iidict-${VERSION}-linux-x64.deb\`
           - **JRE**: Bundled Oracle JRE 21.0.9
-          - **Installation**: 
+          - **Installation**:
             \`\`\`bash
             sudo dpkg -i iidict-${VERSION}-linux-x64.deb
-            # If dependencies are missing:
             sudo apt-get install -f
             \`\`\`
-          - **Features**: Creates application menu entry
-          
+
           ## 🚀 Quick Start
-          
-          1. Download the appropriate installer for your platform
-          2. Run the installer
-          3. Launch IIDict from your applications menu
-          
+          1. Download your installer
+          2. Run it
+          3. Launch IIDict from applications menu
+
           ## 📝 Recent Changes
-          
           $(git log --oneline --max-count=10 --pretty=format:"- %s (%h)")
-          
+
           ## 💡 System Requirements
-          
-          - **Windows**: Windows 10 or later (x64)
-          - **Linux**: Ubuntu 20.04+ or equivalent (x64)
-          - **Memory**: 512 MB RAM minimum
-          - **Disk Space**: 200 MB free space
-          
+          - Windows 10+ (x64) or Ubuntu 20.04+ (x64)
+          - 512 MB RAM
+          - 200 MB disk space
+
           ---
-          
           **Full Changelog**: https://github.com/${{ github.repository }}/commits/master
           EOF
 
       - name: Create GitHub Release
-        uses: softprops/action-gh-release@v1
+        uses: softprops/action-gh-release@v2
         with:
           tag_name: v${{ needs.prepare.outputs.version }}
           name: Release v${{ needs.prepare.outputs.version }}
@@ -297,303 +267,3 @@ jobs:
           git config user.email "actions@github.com"
           git tag -f latest
           git push -f origin latest
-name: Build and Release
-
-on:
-  push:
-    branches:
-      - master
-  workflow_dispatch:
-
-jobs:
-  prepare:
-    runs-on: ubuntu-latest
-    outputs:
-      version: ${{ steps.version.outputs.version }}
-      build_number: ${{ steps.version.outputs.build_number }}
-    steps:
-      - name: Checkout code
-        uses: actions/checkout@v4
-        with:
-          fetch-depth: 0
-
-      - name: Calculate version
-        id: version
-        run: |
-          # Get the count of commits as build number
-          BUILD_NUMBER=$(git rev-list --count HEAD)
-          
-          # Extract base version from pom.xml
-          BASE_VERSION=$(grep -oPm1 "(?<=<version>)[^<]+" pom.xml | head -1)
-          
-          # Create semantic version: base.buildnumber
-          VERSION="${BASE_VERSION}.${BUILD_NUMBER}"
-          
-          echo "version=${VERSION}" >> $GITHUB_OUTPUT
-          echo "build_number=${BUILD_NUMBER}" >> $GITHUB_OUTPUT
-          echo "Generated version: ${VERSION}"
-
-  build-windows:
-    needs: prepare
-    runs-on: windows-latest
-    steps:
-      - name: Checkout code
-        uses: actions/checkout@v4
-
-      - name: Set up JDK 21 for building
-        uses: actions/setup-java@v4
-        with:
-          distribution: 'temurin'
-          java-version: '21'
-          cache: 'maven'
-
-      - name: Update version in pom.xml
-        shell: pwsh
-        run: |
-          $version = "${{ needs.prepare.outputs.version }}"
-          (Get-Content pom.xml) -replace '<version>1\.0</version>', "<version>$version</version>" | Set-Content pom.xml
-
-      - name: Build with Maven
-        run: mvn clean package -DskipTests
-
-      - name: Download JRE 21 for Windows
-        shell: pwsh
-        run: |
-          Write-Host "Downloading JRE 21 for Windows..."
-          Invoke-WebRequest -Uri "https://download.oracle.com/java/21/latest/jdk-21_windows-x64_bin.zip" -OutFile "jdk-windows.zip"
-          Write-Host "Extracting JRE..."
-          Expand-Archive -Path "jdk-windows.zip" -DestinationPath "." -Force
-          
-          # Find the extracted JDK directory
-          $jdkDir = Get-ChildItem -Directory -Filter "jdk-*" | Select-Object -First 1
-          Rename-Item $jdkDir.Name "jdk-21"
-
-      - name: Download and setup jpackage tools
-        shell: pwsh
-        run: |
-          # Install WiX Toolset for Windows installers
-          choco install wixtoolset -y
-          refreshenv
-
-      - name: Create Windows Installer with jpackage
-        shell: pwsh
-        run: |
-          $version = "${{ needs.prepare.outputs.version }}"
-          $APP_VERSION = $version
-          
-          # Create input directory with JAR and resources
-          New-Item -ItemType Directory -Force -Path "package-input"
-          Copy-Item "target\translator-$version.jar" "package-input\translator.jar"
-          
-          # Use jpackage from downloaded JDK
-          & "jdk-21\bin\jpackage.exe" `
-            --type exe `
-            --input package-input `
-            --name "IIDict" `
-            --main-jar translator.jar `
-            --main-class com.iishanto.Main `
-            --runtime-image jdk-21 `
-            --app-version $APP_VERSION `
-            --vendor "IIShanto" `
-            --description "English to Bengali Dictionary" `
-            --icon "src\res\icon.png" `
-            --win-menu `
-            --win-shortcut `
-            --win-dir-chooser `
-            --dest installer-output
-          
-          Write-Host "Installer created successfully"
-
-      - name: Rename installer
-        shell: pwsh
-        run: |
-          $version = "${{ needs.prepare.outputs.version }}"
-          $installer = Get-ChildItem installer-output\*.exe | Select-Object -First 1
-          $newName = "IIDict-$version-windows-x64.exe"
-          Rename-Item $installer.FullName $newName
-          Write-Host "Renamed to: $newName"
-
-      - name: Upload Windows Artifact
-        uses: actions/upload-artifact@v4
-        with:
-          name: windows-installer
-          path: installer-output/*.exe
-          retention-days: 5
-
-  build-linux:
-    needs: prepare
-    runs-on: ubuntu-latest
-    steps:
-      - name: Checkout code
-        uses: actions/checkout@v4
-
-      - name: Set up JDK 11 for building
-        uses: actions/setup-java@v4
-        with:
-          distribution: 'temurin'
-          java-version: '11'
-          cache: 'maven'
-
-      - name: Update version in pom.xml
-        run: |
-          VERSION="${{ needs.prepare.outputs.version }}"
-          sed -i "s/<version>1\.0<\/version>/<version>${VERSION}<\/version>/" pom.xml
-
-      - name: Build with Maven
-        run: mvn clean package -DskipTests
-
-      - name: Download JRE 21 for Linux
-        run: |
-          echo "Downloading JRE 21 for Linux..."
-          wget -q "https://download.oracle.com/java/21/latest/jdk-21_linux-x64_bin.tar.gz" -O jdk-linux.tar.gz
-          echo "Extracting JRE..."
-          tar -xzf jdk-linux.tar.gz
-          mv jdk-* jdk-21
-
-      - name: Install required packages for jpackage
-        run: |
-          sudo apt-get update
-          sudo apt-get install -y fakeroot binutils
-
-      - name: Create Debian Package with jpackage
-        run: |
-          VERSION="${{ needs.prepare.outputs.version }}"
-          
-          # Create input directory with JAR and resources
-          mkdir -p package-input
-          cp "target/translator-${VERSION}.jar" "package-input/translator.jar"
-          
-          # Use jpackage from downloaded JDK
-          ./jdk-21/bin/jpackage \
-            --type deb \
-            --input package-input \
-            --name iidict \
-            --main-jar translator.jar \
-            --main-class com.iishanto.Main \
-            --runtime-image jdk-21 \
-            --app-version "${VERSION}" \
-            --vendor "IIShanto" \
-            --description "English to Bengali Dictionary" \
-            --icon "src/res/icon.png" \
-            --linux-menu-group "Education" \
-            --linux-shortcut \
-            --dest installer-output
-          
-          echo "Debian package created successfully"
-
-      - name: Rename Debian package
-        run: |
-          VERSION="${{ needs.prepare.outputs.version }}"
-          cd installer-output
-          DEB_FILE=$(ls *.deb | head -1)
-          NEW_NAME="iidict-${VERSION}-linux-x64.deb"
-          mv "$DEB_FILE" "$NEW_NAME"
-          echo "Renamed to: $NEW_NAME"
-
-      - name: Upload Linux Artifact
-        uses: actions/upload-artifact@v4
-        with:
-          name: linux-installer
-          path: installer-output/*.deb
-          retention-days: 5
-
-  create-release:
-    needs: [prepare, build-windows, build-linux]
-    runs-on: ubuntu-latest
-    permissions:
-      contents: write
-    steps:
-      - name: Checkout code
-        uses: actions/checkout@v4
-
-      - name: Download Windows Artifact
-        uses: actions/download-artifact@v4
-        with:
-          name: windows-installer
-          path: ./artifacts/windows
-
-      - name: Download Linux Artifact
-        uses: actions/download-artifact@v4
-        with:
-          name: linux-installer
-          path: ./artifacts/linux
-
-      - name: Create Release Notes
-        run: |
-          VERSION="${{ needs.prepare.outputs.version }}"
-          BUILD_NUMBER="${{ needs.prepare.outputs.build_number }}"
-          
-          cat > release-notes.md << EOF
-          # IIDict v${VERSION}
-          
-          ## 📦 Release Information
-          - **Version**: ${VERSION}
-          - **Build Number**: ${BUILD_NUMBER}
-          - **Release Date**: $(date +%Y-%m-%d)
-          - **Commit**: ${GITHUB_SHA:0:7}
-          
-          ## 🎯 What's Included
-          
-          This release includes standalone installers for both Windows and Linux with **bundled JRE 21.0.9**. 
-          No need to install Java separately!
-          
-          ### Windows (x64)
-          - **File**: \`IIDict-${VERSION}-windows-x64.exe\`
-          - **JRE**: Bundled Oracle JRE 21.0.9
-          - **Installation**: Double-click the .exe file and follow the installer
-          - **Features**: Creates Start Menu entry and Desktop shortcut
-          
-          ### Linux (x64)
-          - **File**: \`iidict-${VERSION}-linux-x64.deb\`
-          - **JRE**: Bundled Oracle JRE 21.0.9
-          - **Installation**: 
-            \`\`\`bash
-            sudo dpkg -i iidict-${VERSION}-linux-x64.deb
-            # If dependencies are missing:
-            sudo apt-get install -f
-            \`\`\`
-          - **Features**: Creates application menu entry
-          
-          ## 🚀 Quick Start
-          
-          1. Download the appropriate installer for your platform
-          2. Run the installer
-          3. Launch IIDict from your applications menu
-          
-          ## 📝 Recent Changes
-          
-          $(git log --oneline --max-count=10 --pretty=format:"- %s (%h)")
-          
-          ## 💡 System Requirements
-          
-          - **Windows**: Windows 10 or later (x64)
-          - **Linux**: Ubuntu 20.04+ or equivalent (x64)
-          - **Memory**: 512 MB RAM minimum
-          - **Disk Space**: 200 MB free space
-          
-          ---
-          
-          **Full Changelog**: https://github.com/${{ github.repository }}/commits/master
-          EOF
-
-      - name: Create GitHub Release
-        uses: softprops/action-gh-release@v1
-        with:
-          tag_name: v${{ needs.prepare.outputs.version }}
-          name: Release v${{ needs.prepare.outputs.version }}
-          body_path: release-notes.md
-          draft: false
-          prerelease: false
-          files: |
-            artifacts/windows/*.exe
-            artifacts/linux/*.deb
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-
-      - name: Update latest tag
-        run: |
-          git config user.name "GitHub Actions"
-          git config user.email "actions@github.com"
-          git tag -f latest
-          git push -f origin latest
-
