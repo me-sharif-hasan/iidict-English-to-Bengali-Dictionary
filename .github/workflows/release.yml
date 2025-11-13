@@ -39,12 +39,14 @@ jobs:
           distribution: temurin
           java-version: 21
 
-      - name: Build Windows executable
+      - name: Build JAR with Maven
+        run: mvn -B clean package
+
+      - name: Package Windows app
         run: |
           mkdir dist
-          xcopy src\res\logo.png dist\logo.png /Y
-          copy translator-1.0.jar dist\translator.jar /Y
-          echo "Creating Windows executable..."
+          copy src\res\logo.png dist\logo.png
+          copy target\translator-1.0.jar dist\translator.jar
           jpackage ^
             --type exe ^
             --input dist ^
@@ -84,21 +86,14 @@ jobs:
           distribution: temurin
           java-version: 21
 
-      - name: Download and extract JRE 21 for Linux
-        run: |
-          echo "Downloading JRE 21 for Linux..."
-          wget -q "https://download.oracle.com/java/21/latest/jdk-21_linux-x64_bin.tar.gz" -O jdk-linux.tar.gz
-          echo "Extracting JRE..."
-          tar -xzf jdk-linux.tar.gz
-          extracted_dir=$(tar -tzf jdk-linux.tar.gz | head -1 | cut -f1 -d"/")
-          mv "$extracted_dir" jdk-21
+      - name: Build JAR with Maven
+        run: mvn -B clean package
 
-      - name: Build Linux package
+      - name: Package Linux app
         run: |
           mkdir dist
           cp src/res/logo.png dist/logo.png
-          cp translator-1.0.jar dist/translator.jar
-          echo "Creating Linux executable..."
+          cp target/translator-1.0.jar dist/translator.jar
           jpackage \
             --type app-image \
             --input dist \
@@ -107,8 +102,8 @@ jobs:
             --app-version "${{ needs.prepare.outputs.version }}" \
             --vendor "JS Enterprise" \
             --icon dist/logo.png
-          tar -czf GlobalTranslatorPlus_Linux.tar.gz Global\ Translator\ Plus/
-
+          tar -czf GlobalTranslatorPlus_Linux.tar.gz "Global Translator Plus"
+      
       - name: Upload artifact (Linux)
         uses: actions/upload-artifact@v4
         with:
