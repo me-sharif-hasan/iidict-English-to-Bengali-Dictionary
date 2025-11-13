@@ -1,50 +1,58 @@
 package com.iishanto;
 
+import javafx.application.Platform;
 import java.awt.*;
 import java.awt.datatransfer.DataFlavor;
-import java.awt.datatransfer.UnsupportedFlavorException;
-import java.io.IOException;
-import java.util.Locale;
 import java.util.concurrent.TimeUnit;
 
 public class ClipBoard {
     String previous="";
     boolean first_cpy=true;
+    private volatile boolean running = true;
+    private final Thread monitorThread;
+
     public ClipBoard(){
-        new Thread(new Runnable() {
-            @Override
-            public void run() {
-                init();
-            }
-        }).start();
+        monitorThread = new Thread(this::init);
+        monitorThread.setDaemon(true); // Make it a daemon thread so it doesn't prevent JVM shutdown
+        monitorThread.setName("ClipboardMonitor");
+        monitorThread.start();
     }
+
+    public void stop() {
+        running = false;
+        if (monitorThread != null) {
+            monitorThread.interrupt();
+        }
+    }
+
     void init(){
-        while (true){
-            String text=getClipBoard();
-            if(text.equals(previous)||text.equals("")) {
-                first_cpy=false;
-                continue;
-            }
-            if(first_cpy){
-                first_cpy=false;
-                previous=text;
-                continue;
-            }
-            Tools.getConfig().regNewText(text);
-            Tools.getConfig().callEvent("new_text");
-            previous=text;
+        while (running){
             try {
-                TimeUnit.MICROSECONDS.sleep(50);
+                String text=getClipBoard();
+                if(text.equals(previous)||text.equals("")) {
+                    first_cpy=false;
+                } else if(first_cpy){
+                    first_cpy=false;
+                    previous=text;
+                } else {
+                    Tools.getConfig().regNewText(text);
+                    Tools.getConfig().callEvent("new_text");
+                    previous=text;
+                }
+                // Sleep 200ms between clipboard checks to avoid locking the clipboard
+                TimeUnit.MILLISECONDS.sleep(200);
             } catch (InterruptedException e) {
-                e.printStackTrace();
+                System.out.println("Clipboard monitoring interrupted");
             }
         }
+        System.out.println("Clipboard monitoring stopped");
     }
 
     public String getClipBoard(){
         try {
             String data=(String) Toolkit.getDefaultToolkit().getSystemClipboard().getData(DataFlavor.stringFlavor);
-            return data.trim();
+            // Decode HTML entities from clipboard text
+            return Tools.decodeHtmlEntities(data.trim());
         } catch (Exception e){
             return "";
         }
